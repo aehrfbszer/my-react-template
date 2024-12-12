@@ -1,7 +1,6 @@
-@layer layout-container {
-  width: 100%;
-  height: 100%;
-  display: flex;
-  flex-direction: column;
-  overflow: auto;
+@layer {
+  .layout-container {
+    width: 100%;
+    height: 100%;
+  }
 }
