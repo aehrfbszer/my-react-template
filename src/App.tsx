@@ -1,5 +1,9 @@
+import { useLocation } from "react-router";
+
 function App() {
-  return <h1>hello</h1>;
+  const location = useLocation();
+
+  return <h1>hello {location.pathname}</h1>;
 }
 
 export default App;
