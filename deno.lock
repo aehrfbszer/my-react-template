@@ -1,19 +1,19 @@
 {
   "version": "4",
   "specifiers": {
-    "npm:@eslint/js@^9.16.0": "9.16.0",
+    "npm:@eslint/js@^9.17.0": "9.17.0",
     "npm:@types/react-dom@^19.0.2": "19.0.2_@types+react@19.0.1",
     "npm:@types/react@^19.0.1": "19.0.1",
     "npm:@vitejs/plugin-react@^4.3.4": "4.3.4_vite@6.0.3_@babel+core@7.26.0",
-    "npm:eslint-plugin-react-hooks@^5.1.0": "5.1.0_eslint@9.16.0",
-    "npm:eslint-plugin-react-refresh@~0.4.16": "0.4.16_eslint@9.16.0",
-    "npm:eslint@^9.16.0": "9.16.0",
+    "npm:eslint-plugin-react-hooks@^5.1.0": "5.1.0_eslint@9.17.0",
+    "npm:eslint-plugin-react-refresh@~0.4.16": "0.4.16_eslint@9.17.0",
+    "npm:eslint@^9.17.0": "9.17.0",
     "npm:globals@^15.13.0": "15.13.0",
     "npm:prettier@3.4.2": "3.4.2",
     "npm:react-dom@19": "19.0.0_react@19.0.0",
     "npm:react-router@^7.0.2": "7.0.2_react@19.0.0_react-dom@19.0.0__react@19.0.0",
     "npm:react@19": "19.0.0",
-    "npm:typescript-eslint@^8.18.0": "8.18.0_eslint@9.16.0_typescript@5.7.2_@typescript-eslint+parser@8.18.0__eslint@9.16.0__typescript@5.7.2",
+    "npm:typescript-eslint@^8.18.0": "8.18.0_eslint@9.17.0_typescript@5.7.2_@typescript-eslint+parser@8.18.0__eslint@9.17.0__typescript@5.7.2",
     "npm:typescript@~5.7.2": "5.7.2",
     "npm:vite@^6.0.3": "6.0.3"
   },
@@ -230,7 +230,7 @@
     "@esbuild/win32-x64@0.24.0": {
       "integrity": "sha512-7IAFPrjSQIJrGsK6flwg7NFmwBoSTyF3rl7If0hNUFQU4ilTsEPL6GuMuU9BfIWVVGuRnuIidkSMC+c0Otu8IA=="
     },
-    "@eslint-community/eslint-utils@4.4.1_eslint@9.16.0": {
+    "@eslint-community/eslint-utils@4.4.1_eslint@9.17.0": {
       "integrity": "sha512-s3O3waFUrMV8P/XaF/+ZTp1X9XBZW1a4B97ZnjQF2KYWaFD2A8KyFBsrsfSjEmjn3RGWAIuvlneuZm3CUK3jbA==",
       "dependencies": [
         "eslint",
@@ -268,8 +268,8 @@
         "strip-json-comments"
       ]
     },
-    "@eslint/js@9.16.0": {
-      "integrity": "sha512-tw2HxzQkrbeuvyj1tG2Yqq+0H9wGoI2IMk4EOsQeX+vmd75FtJAzf+gTA69WF+baUKRYQ3x2kbLE08js5OsTVg=="
+    "@eslint/js@9.17.0": {
+      "integrity": "sha512-Sxc4hqcs1kTu0iID3kcZDW3JHq2a77HO9P8CP6YEA/FpH3Ll8UXE2r/86Rz9YJLKme39S9vU5OWNjC6Xl0Cr3w=="
     },
     "@eslint/object-schema@2.1.5": {
       "integrity": "sha512-o0bhxnL89h5Bae5T318nFoFzGy+YE5i/gGkoPAgkmTVdRKTiv3p8JHevPiPaMwoloKfEiiaHlawCqaZMqRm+XQ=="
@@ -447,7 +447,7 @@
         "csstype"
       ]
     },
-    "@typescript-eslint/eslint-plugin@8.18.0_@typescript-eslint+parser@8.18.0__eslint@9.16.0__typescript@5.7.2_eslint@9.16.0_typescript@5.7.2": {
+    "@typescript-eslint/eslint-plugin@8.18.0_@typescript-eslint+parser@8.18.0__eslint@9.17.0__typescript@5.7.2_eslint@9.17.0_typescript@5.7.2": {
       "integrity": "sha512-NR2yS7qUqCL7AIxdJUQf2MKKNDVNaig/dEB0GBLU7D+ZdHgK1NoH/3wsgO3OnPVipn51tG3MAwaODEGil70WEw==",
       "dependencies": [
         "@eslint-community/regexpp",
@@ -464,7 +464,7 @@
         "typescript"
       ]
     },
-    "@typescript-eslint/parser@8.18.0_eslint@9.16.0_typescript@5.7.2": {
+    "@typescript-eslint/parser@8.18.0_eslint@9.17.0_typescript@5.7.2": {
       "integrity": "sha512-hgUZ3kTEpVzKaK3uNibExUYm6SKKOmTU2BOxBSvOYwtJEPdVQ70kZJpPjstlnhCHcuc2WGfSbpKlb/69ttyN5Q==",
       "dependencies": [
         "@typescript-eslint/scope-manager",
@@ -483,7 +483,7 @@
         "@typescript-eslint/visitor-keys"
       ]
     },
-    "@typescript-eslint/type-utils@8.18.0_eslint@9.16.0_typescript@5.7.2": {
+    "@typescript-eslint/type-utils@8.18.0_eslint@9.17.0_typescript@5.7.2": {
       "integrity": "sha512-er224jRepVAVLnMF2Q7MZJCq5CsdH2oqjP4dT7K6ij09Kyd+R21r7UVJrF0buMVdZS5QRhDzpvzAxHxabQadow==",
       "dependencies": [
         "@typescript-eslint/typescript-estree",
@@ -511,7 +511,7 @@
         "typescript"
       ]
     },
-    "@typescript-eslint/utils@8.18.0_eslint@9.16.0_typescript@5.7.2": {
+    "@typescript-eslint/utils@8.18.0_eslint@9.17.0_typescript@5.7.2": {
       "integrity": "sha512-p6GLdY383i7h5b0Qrfbix3Vc3+J2k6QWw6UMUeY5JGfm3C5LbZ4QIZzJNoNOfgyRe0uuYKjvVOsO/jD4SJO+xg==",
       "dependencies": [
         "@eslint-community/eslint-utils",
@@ -687,13 +687,13 @@
     "escape-string-regexp@4.0.0": {
       "integrity": "sha512-TtpcNJ3XAzx3Gq8sWRzJaVajRs0uVxA2YAkdb1jm2YkPz4G6egUFAyA3n5vtEIZefPk5Wa4UXbKuS5fKkJWdgA=="
     },
-    "eslint-plugin-react-hooks@5.1.0_eslint@9.16.0": {
+    "eslint-plugin-react-hooks@5.1.0_eslint@9.17.0": {
       "integrity": "sha512-mpJRtPgHN2tNAvZ35AMfqeB3Xqeo273QxrHJsbBEPWODRM4r0yB6jfoROqKEYrOn27UtRPpcpHc2UqyBSuUNTw==",
       "dependencies": [
         "eslint"
       ]
     },
-    "eslint-plugin-react-refresh@0.4.16_eslint@9.16.0": {
+    "eslint-plugin-react-refresh@0.4.16_eslint@9.17.0": {
       "integrity": "sha512-slterMlxAhov/DZO8NScf6mEeMBBXodFUolijDvrtTxyezyLoTQaa73FyYus/VbTdftd8wBgBxPMRk3poleXNQ==",
       "dependencies": [
         "eslint"
@@ -712,8 +712,8 @@
     "eslint-visitor-keys@4.2.0": {
       "integrity": "sha512-UyLnSehNt62FFhSwjZlHmeokpRK59rcz29j+F1/aDgbkbRTk7wIc9XzdoasMUbRNKDM0qQt/+BJ4BrpFeABemw=="
     },
-    "eslint@9.16.0": {
-      "integrity": "sha512-whp8mSQI4C8VXd+fLgSM0lh3UlmcFtVwUQjyKCFfsp+2ItAIYhlq/hqGahGqHE6cv9unM41VlqKk2VtKYR2TaA==",
+    "eslint@9.17.0": {
+      "integrity": "sha512-evtlNcpJg+cZLcnVKwsai8fExnqjGPicK7gnUtlNuzu+Fv9bI0aLpND5T44VLQtoMEnI57LoXO9XAkIXwohKrA==",
       "dependencies": [
         "@eslint-community/eslint-utils",
         "@eslint-community/regexpp",
@@ -1155,7 +1155,7 @@
         "prelude-ls"
       ]
     },
-    "typescript-eslint@8.18.0_eslint@9.16.0_typescript@5.7.2_@typescript-eslint+parser@8.18.0__eslint@9.16.0__typescript@5.7.2": {
+    "typescript-eslint@8.18.0_eslint@9.17.0_typescript@5.7.2_@typescript-eslint+parser@8.18.0__eslint@9.17.0__typescript@5.7.2": {
       "integrity": "sha512-Xq2rRjn6tzVpAyHr3+nmSg1/9k9aIHnJ2iZeOH7cfGOWqTkXTm3kwpQglEuLGdNrYvPF+2gtAs+/KF5rjVo+WQ==",
       "dependencies": [
         "@typescript-eslint/eslint-plugin",
@@ -1210,13 +1210,13 @@
   "workspace": {
     "packageJson": {
       "dependencies": [
-        "npm:@eslint/js@^9.16.0",
+        "npm:@eslint/js@^9.17.0",
         "npm:@types/react-dom@^19.0.2",
         "npm:@types/react@^19.0.1",
         "npm:@vitejs/plugin-react@^4.3.4",
         "npm:eslint-plugin-react-hooks@^5.1.0",
         "npm:eslint-plugin-react-refresh@~0.4.16",
-        "npm:eslint@^9.16.0",
+        "npm:eslint@^9.17.0",
         "npm:globals@^15.13.0",
         "npm:prettier@3.4.2",
         "npm:react-dom@19",
