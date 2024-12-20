@@ -1,6 +1,8 @@
 type Allocator = (val: unknown) => unknown;
+
+type SetFnParam<Q> = Q | ((vv: Q) => Q);
 interface GlobalUpdater<T> {
-  setVal: (v: T | ((vv: T) => T)) => void;
+  setVal: (v: SetFnParam<T>) => void;
   getVal: () => T;
 }
 
@@ -14,13 +16,20 @@ const isFun = (v: unknown) => typeof v === "function";
  */
 export class simpleStore<T> {
   #value: T;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   static #allStore: Record<string | symbol, simpleStore<any>> = {};
-  #pageSourceMap: Record<string, [GlobalUpdater<T>["setVal"], symbol]> = {};
+  #pageSourceMap: Record<
+    string,
+    [
+      proxySetFn: GlobalUpdater<T>["setVal"],
+      uniqueKey: symbol,
+      rawSetFn: GlobalUpdater<T>["setVal"],
+    ]
+  > = {};
 
   static #globalUpdater: Allocator[] = [];
 
   innerSet?: GlobalUpdater<T>["setVal"];
-  innerGet?: GlobalUpdater<T>["getVal"];
 
   #onceAction: symbol = Symbol();
   #isUpdate = false;
@@ -48,43 +57,45 @@ export class simpleStore<T> {
   }
 
   #done(pageKey: string) {
-    console.log("新1",pageKey);
+    console.log("pageKey", pageKey);
 
-    const mySet = (v: T | ((vv: T) => T)) => {
-      console.log(this.#value, "---11", this.innerGet!());
-      const newVal = isFun(v) ? v(this.#value) : v;
-      this.#value = newVal;
-      this.innerSet!(newVal);
-      if (!this.#isUpdate) {
-        this.#onceAction = Symbol();
-        this.#isUpdate = true;
-        console.log("一次用户操作-----------------------------------");
-        for (const arr of Object.values(this.#pageSourceMap)) {
-          const [fn, syl] = arr;
-          console.log(syl === this.#onceAction, "---33");
+    const mySet =
+      (theSetFn: GlobalUpdater<T>["setVal"]) => (v: SetFnParam<T>) => {
+        console.log("进行 setVal ---11");
+        const newVal = isFun(v) ? v(this.#value) : v;
+        this.#value = newVal;
+        theSetFn(newVal);
+        if (!this.#isUpdate) {
+          this.#onceAction = Symbol();
+          this.#isUpdate = true;
+          console.log("一次用户操作-----------------------------------");
+          for (const arr of Object.values(this.#pageSourceMap)) {
+            const [fn, syl, rawFn] = arr;
 
-          if (syl === this.#onceAction) continue;
-          fn(newVal);
-          arr[1] = this.#onceAction;
+            const done = syl === this.#onceAction || rawFn === theSetFn;
+
+            console.log(
+              "查询所有同一个store，包括触发者 ---33",
+              `【${done}】`,
+              "true代表已更新；false代表未更新",
+            );
+
+            if (done) continue;
+            console.log("进行更新其他未被更新的 ---44");
+
+            fn(newVal);
+            arr[1] = this.#onceAction;
+          }
+          this.#isUpdate = false;
         }
-        this.#isUpdate = false;
-      }
-
-      console.log(this.#value, "---22", this.innerGet!());
-    };
-    const weakKey = [
-      () => {
-        console.log("获取", this.#value);
-
-        return this.#value;
-      },
-      mySet,
-    ] as const;
-    this.#pageSourceMap[pageKey] = [mySet, this.#onceAction];
-
-    for (const arr of Object.values(this.#pageSourceMap)) {
-      console.log(this.#onceAction === arr[1], "---44");
-    }
+      };
+    const finalSetFn = mySet(this.innerSet!);
+    const weakKey = [() => this.#value, finalSetFn] as const;
+    this.#pageSourceMap[pageKey] = [
+      finalSetFn,
+      this.#onceAction,
+      this.innerSet!,
+    ];
 
     return weakKey;
   }
@@ -98,14 +109,13 @@ export class simpleStore<T> {
   ) => {
     const proxySome = this.doProxy(allocatorIndex);
     if (proxyLogic) {
-      [this.innerGet, this.innerSet] = proxyLogic(proxySome);
+      [, this.innerSet] = proxyLogic(proxySome);
       return this.#done(pageKey);
     }
     switch ((proxySome as { length: number }).length) {
       case 2:
         {
           const maybeReact = proxySome as [T, GlobalUpdater<T>["setVal"]];
-          this.innerGet = () => maybeReact[0];
           this.innerSet = maybeReact[1];
         }
         break;
@@ -115,7 +125,6 @@ export class simpleStore<T> {
           set value(_: S);
         };
         const maybeVue = proxySome as unknown as VueType<T>;
-        this.innerGet = () => maybeVue.value;
         this.innerSet = (v) =>
           (maybeVue.value = isFun(v) ? v(maybeVue.value) : v);
       }

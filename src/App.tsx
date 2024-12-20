@@ -5,6 +5,7 @@ import { SomeContext } from "./Layout";
 import PageA from "./components/PageA";
 import PageB from "./components/PageB";
 import { simpleStore } from "./store/simpleStore";
+import PageC from "./components/PageC";
 
 function App() {
   const location = useLocation();
@@ -54,6 +55,10 @@ function App() {
       <div>
         <h1>B</h1>
         <PageB />
+      </div>
+      <div>
+        <h1>C</h1>
+        <PageC />
       </div>
     </div>
   );

@@ -6,6 +6,8 @@ const useStore = simpleStore.useStore;
 function PageB() {
   const [getVal, setVal] = useStore(countStore, useId());
 
+  console.log("页面B渲染");
+
   return (
     <div>
       <h2>我的store{getVal()} BBBBBBBBB</h2>
