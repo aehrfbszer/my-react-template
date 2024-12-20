@@ -1,4 +1,4 @@
-import { StrictMode } from "react";
+import { StrictMode, useState } from "react";
 import { createRoot } from "react-dom/client";
 import "./index.css";
 import App from "./App.tsx";
@@ -6,7 +6,9 @@ import { BrowserRouter, Navigate, Route, Routes } from "react-router";
 import Layout from "./Layout.tsx";
 import Login from "./Login.tsx";
 import LayoutWithAuth from "./LayoutWithAuth.tsx";
+import { simpleStore } from "./store/simpleStore.ts";
 
+simpleStore.register(useState);
 createRoot(document.getElementById("root")!).render(
   <StrictMode>
     <BrowserRouter>

@@ -1,12 +1,11 @@
 import { Outlet } from "react-router";
-import { createContext, useState } from "react";
+import { createContext } from "react";
 import "./Layout.css";
-import { simpleStore } from "./store/simpleStore";
 
+// Context最好是单文件导出，不要和组件一起导出
 const SomeContext = createContext<{ aa?: number }>({});
 
 const Layout = () => {
-  simpleStore.register(useState);
   return (
     <div className="layout-container">
       <SomeContext value={{ aa: 1 }}>
