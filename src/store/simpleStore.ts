@@ -14,13 +14,16 @@ const isFun = (v: unknown) => typeof v === "function";
  */
 export class simpleStore<T> {
   #value: T;
-  static #allStore: Record<string | symbol, unknown> = {};
-  #pageSourceMap: Record<string, GlobalUpdater<T>["setVal"]> = {};
+  static #allStore: Record<string | symbol, simpleStore<any>> = {};
+  #pageSourceMap: Record<string, [GlobalUpdater<T>["setVal"], symbol]> = {};
 
   static #globalUpdater: Allocator[] = [];
 
   innerSet?: GlobalUpdater<T>["setVal"];
   innerGet?: GlobalUpdater<T>["getVal"];
+
+  #onceAction: symbol = Symbol();
+  #isUpdate = false;
 
   // 注册全局分配器，返回当前分配器的下标，即全局分配器数量减一
   static register(allocator: Allocator) {
@@ -29,9 +32,11 @@ export class simpleStore<T> {
     return index;
   }
 
+  getVal = () => this.#value;
+
   constructor(key: string, value: T) {
     this.#value = value;
-    simpleStore.#allStore[key] = this.#value;
+    simpleStore.#allStore[key] = this;
   }
 
   // proxy 不能是全局的，是绑定框架的运行机制，需要和生命周期绑在一起
@@ -43,17 +48,29 @@ export class simpleStore<T> {
   }
 
   #done(pageKey: string) {
-    console.log("新1");
+    console.log("新1",pageKey);
 
     const mySet = (v: T | ((vv: T) => T)) => {
       console.log(this.#value, "---11", this.innerGet!());
       const newVal = isFun(v) ? v(this.#value) : v;
       this.#value = newVal;
-      console.log(this.#value, "---22", this.innerGet!());
-      for (const fn of Object.values(this.#pageSourceMap)) {
-        fn(newVal);
-      }
       this.innerSet!(newVal);
+      if (!this.#isUpdate) {
+        this.#onceAction = Symbol();
+        this.#isUpdate = true;
+        console.log("一次用户操作-----------------------------------");
+        for (const arr of Object.values(this.#pageSourceMap)) {
+          const [fn, syl] = arr;
+          console.log(syl === this.#onceAction, "---33");
+
+          if (syl === this.#onceAction) continue;
+          fn(newVal);
+          arr[1] = this.#onceAction;
+        }
+        this.#isUpdate = false;
+      }
+
+      console.log(this.#value, "---22", this.innerGet!());
     };
     const weakKey = [
       () => {
@@ -63,7 +80,12 @@ export class simpleStore<T> {
       },
       mySet,
     ] as const;
-    this.#pageSourceMap[pageKey] = mySet;
+    this.#pageSourceMap[pageKey] = [mySet, this.#onceAction];
+
+    for (const arr of Object.values(this.#pageSourceMap)) {
+      console.log(this.#onceAction === arr[1], "---44");
+    }
+
     return weakKey;
   }
 
@@ -113,11 +135,10 @@ export class simpleStore<T> {
     return store.getUpdater(pageKey, allocatorIndex, proxyLogic);
   }
 
-  /**
-   * 警告，使用了深拷贝，非常消耗资源
-   */
   static lookAllStore = () => {
-    const copy = structuredClone(simpleStore.#allStore);
-    return copy;
+    return Object.entries(simpleStore.#allStore).map(([key, cls]) => [
+      key,
+      cls.getVal(),
+    ]);
   };
 }
