@@ -4,9 +4,10 @@ import { simpleStore } from "../store/simpleStore";
 import cStore from "../store/cStore";
 
 const useStore = simpleStore.useStore;
+const pageAId = Symbol("pageA");
 
 function PageA() {
-  const [getVal, setVal] = useStore(countStore, useId());
+  const [getVal, setVal] = useStore(countStore, pageAId);
   const [getVal1, setVal1] = useStore(cStore, useId());
 
   console.log("页面A渲染");

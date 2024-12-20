@@ -1,10 +1,11 @@
-import { useId } from "react";
 import countStore from "../store/countStore";
 import { simpleStore } from "../store/simpleStore";
 
 const useStore = simpleStore.useStore;
+const pageBId = Symbol("pageB");
+
 function PageB() {
-  const [getVal, setVal] = useStore(countStore, useId());
+  const [getVal, setVal] = useStore(countStore, pageBId);
 
   console.log("页面B渲染");
 

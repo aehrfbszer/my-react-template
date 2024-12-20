@@ -20,7 +20,7 @@ export class simpleStore<T> {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   static #allStore: Record<string | symbol, simpleStore<any>> = {};
   #pageSourceMap: Record<
-    string,
+    string | symbol,
     [
       proxySetFn: GlobalUpdater<T>["setVal"],
       uniqueKey: symbol,
@@ -45,7 +45,7 @@ export class simpleStore<T> {
 
   getVal = () => this.#value;
 
-  constructor(key: string, value: T) {
+  constructor(key: string | symbol, value: T) {
     this.#value = value;
     simpleStore.#allStore[key] = this;
   }
@@ -58,7 +58,7 @@ export class simpleStore<T> {
     return proxySome;
   }
 
-  #done(pageKey: string) {
+  #done(pageKey: string | symbol) {
     console.log("pageKey", pageKey);
     const oldDoneArr = this.#pageSourceMap[pageKey];
 
@@ -78,8 +78,8 @@ export class simpleStore<T> {
           this.#onceAction = Symbol();
           this.#isUpdate = true;
           console.log("一次用户操作-----------------------------------");
-          for (const arr of Object.values(this.#pageSourceMap)) {
-            const [fn, syl, rawFn] = arr;
+          for (const pKey of Reflect.ownKeys(this.#pageSourceMap)) {
+            const [fn, syl, rawFn] = this.#pageSourceMap[pKey];
 
             const done = syl === this.#onceAction || rawFn === theSetFn;
 
@@ -93,7 +93,7 @@ export class simpleStore<T> {
             console.log("进行更新其他未被更新的 ---44");
 
             fn(newVal);
-            arr[1] = this.#onceAction;
+            this.#pageSourceMap[pKey][1] = this.#onceAction;
           }
           this.#isUpdate = false;
         }
@@ -112,7 +112,7 @@ export class simpleStore<T> {
   }
 
   getUpdater = (
-    pageKey: string,
+    pageKey: string | symbol,
     allocatorIndex?: number,
     proxyLogic?: (
       proxyVal: unknown,
@@ -148,7 +148,7 @@ export class simpleStore<T> {
 
   static useStore<U>(
     store: simpleStore<U>,
-    pageKey: string,
+    pageKey: string | symbol,
     allocatorIndex?: number,
     proxyLogic?: (
       proxyVal: unknown,
@@ -158,9 +158,8 @@ export class simpleStore<T> {
   }
 
   static lookAllStore = () => {
-    return Object.entries(simpleStore.#allStore).map(([key, cls]) => [
-      key,
-      cls.getVal(),
-    ]);
+    return Reflect.ownKeys(simpleStore.#allStore).map((key) => ({
+      [key]: simpleStore.#allStore[key].getVal(),
+    }));
   };
 }

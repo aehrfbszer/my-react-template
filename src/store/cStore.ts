@@ -1,6 +1,6 @@
 import { simpleStore } from "./simpleStore";
 
-const cStore = new simpleStore("ccc", {
+const cStore = new simpleStore(Symbol("ccc"), {
   ds: () => {
     console.log("获取dsd");
   },
