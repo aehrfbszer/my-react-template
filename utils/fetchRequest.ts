@@ -98,6 +98,7 @@ const reloadPage = () => {
   throw new Error("无法处理，刷新页面，这个错误不应该log出来");
 };
 
+// 默认只支持解析json格式的返回，其他格式的数据需要自己处理（毕竟，json是真的主流通信格式了）
 export const newFetchRequest = ({
   baseUrl,
   timeout = 60 * 1000,
@@ -352,6 +353,7 @@ export const newFetchRequest = ({
             );
           } catch (e) {
             // 错误不是json,且已经用了json方法，数据流被消耗，无法再次用类似text等方法读取
+            // 没有必要clone再尝试其他解析方法，因为这是接口问题(同一个接口不会允许不同的返回格式)，有问题也应该在开发期间解决
             console.error(
               "错误不是json,且已经用了json方法，数据流被消耗，无法再次用类似text等方法读取",
             );
