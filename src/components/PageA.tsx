@@ -13,7 +13,7 @@ function PageA() {
 
   useEffect(() => {
     setVal((v) => v + 1);
-  }, []);
+  }, [setVal]);
 
   return (
     <div>

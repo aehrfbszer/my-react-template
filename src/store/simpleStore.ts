@@ -59,11 +59,17 @@ export class simpleStore<T> {
 
   #done(pageKey: string) {
     console.log("pageKey", pageKey);
+    const oldDoneArr = this.#pageSourceMap[pageKey];
+
+    const getValue = () => this.innerGet?.() ?? this.#value;
+
+    if (oldDoneArr) {
+      return [getValue, oldDoneArr[0]] as const;
+    }
 
     const mySet =
       (theSetFn: GlobalUpdater<T>["setVal"]) => (v: SetFnParam<T>) => {
         console.log("进行 setVal ---11");
-        const getValue = () => this.innerGet?.() ?? this.#value;
         const newVal = isFun(v) ? v(getValue()) : v;
         this.#value = newVal;
         theSetFn(newVal);
@@ -94,10 +100,7 @@ export class simpleStore<T> {
     const finalSetFn = mySet(this.innerSet);
     console.log("重新进行魔法的创建");
 
-    const weakKey = [
-      () => this.innerGet?.() ?? this.#value,
-      finalSetFn,
-    ] as const;
+    const weakKey = [getValue, finalSetFn] as const;
     this.#pageSourceMap[pageKey] = [
       finalSetFn,
       this.#onceAction,
