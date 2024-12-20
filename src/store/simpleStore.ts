@@ -29,7 +29,8 @@ export class simpleStore<T> {
 
   static #globalUpdater: Allocator[] = [];
 
-  innerSet?: GlobalUpdater<T>["setVal"];
+  innerSet!: GlobalUpdater<T>["setVal"];
+  innerGet?: GlobalUpdater<T>["getVal"];
 
   #onceAction: symbol = Symbol();
   #isUpdate = false;
@@ -62,7 +63,8 @@ export class simpleStore<T> {
     const mySet =
       (theSetFn: GlobalUpdater<T>["setVal"]) => (v: SetFnParam<T>) => {
         console.log("进行 setVal ---11");
-        const newVal = isFun(v) ? v(this.#value) : v;
+        const getValue = () => this.innerGet?.() ?? this.#value;
+        const newVal = isFun(v) ? v(getValue()) : v;
         this.#value = newVal;
         theSetFn(newVal);
         if (!this.#isUpdate) {
@@ -89,12 +91,17 @@ export class simpleStore<T> {
           this.#isUpdate = false;
         }
       };
-    const finalSetFn = mySet(this.innerSet!);
-    const weakKey = [() => this.#value, finalSetFn] as const;
+    const finalSetFn = mySet(this.innerSet);
+    console.log("重新进行魔法的创建");
+
+    const weakKey = [
+      () => this.innerGet?.() ?? this.#value,
+      finalSetFn,
+    ] as const;
     this.#pageSourceMap[pageKey] = [
       finalSetFn,
       this.#onceAction,
-      this.innerSet!,
+      this.innerSet,
     ];
 
     return weakKey;
@@ -109,7 +116,7 @@ export class simpleStore<T> {
   ) => {
     const proxySome = this.doProxy(allocatorIndex);
     if (proxyLogic) {
-      [, this.innerSet] = proxyLogic(proxySome);
+      [this.innerGet, this.innerSet] = proxyLogic(proxySome);
       return this.#done(pageKey);
     }
     switch ((proxySome as { length: number }).length) {
@@ -117,6 +124,7 @@ export class simpleStore<T> {
         {
           const maybeReact = proxySome as [T, GlobalUpdater<T>["setVal"]];
           this.innerSet = maybeReact[1];
+          this.innerGet = () => maybeReact[0];
         }
         break;
       default: {
@@ -127,6 +135,7 @@ export class simpleStore<T> {
         const maybeVue = proxySome as unknown as VueType<T>;
         this.innerSet = (v) =>
           (maybeVue.value = isFun(v) ? v(maybeVue.value) : v);
+        this.innerGet = () => maybeVue.value;
       }
     }
 

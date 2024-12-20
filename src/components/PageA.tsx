@@ -12,8 +12,8 @@ function PageA() {
   console.log("页面A渲染");
 
   useEffect(() => {
-    console.log("useEffect", getVal1());
-  }, [getVal1]);
+    setVal((v) => v + 1);
+  }, []);
 
   return (
     <div>
