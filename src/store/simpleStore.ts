@@ -23,7 +23,7 @@ export class simpleStore<T> {
     string | symbol,
     [
       proxySetFn: GlobalUpdater<T>["setVal"],
-      uniqueKey: symbol,
+      onceActionKey: symbol,
       rawSetFn: GlobalUpdater<T>["setVal"],
     ]
   > = {};

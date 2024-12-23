@@ -13,6 +13,7 @@ function App() {
   const [isPending, startTransition] = useTransition();
   const cc = use(SomeContext);
   const ddd = useId();
+  const [show, setShow] = useState(true);
   useEffect(() => {
     startTransition(async () => {
       try {
@@ -57,9 +58,14 @@ function App() {
         <PageB />
       </div>
       <div>
-        <h1>C</h1>
-        <PageC />
+        <button onClick={() => setShow(!show)}>切换C</button>
       </div>
+      {show && (
+        <div>
+          <h1>C</h1>
+          <PageC />
+        </div>
+      )}
     </div>
   );
 }

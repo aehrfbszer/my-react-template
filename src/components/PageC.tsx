@@ -1,11 +1,13 @@
-import { useEffect, useId } from "react";
+import { useEffect } from "react";
 import { simpleStore } from "../store/simpleStore";
 import cStore from "../store/cStore";
 
 const useStore = simpleStore.useStore;
 
+const PageCId = Symbol("PageCId");
+
 function PageC() {
-  const [getVal1, setVal1] = useStore(cStore, useId());
+  const [getVal1, setVal1] = useStore(cStore, PageCId);
 
   console.log("页面C渲染");
 
