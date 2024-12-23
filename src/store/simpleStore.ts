@@ -30,8 +30,8 @@ export class simpleStore<T> {
 
   static #globalUpdater: Allocator[] = [];
 
-  innerSet!: GlobalUpdater<T>["setVal"];
-  innerGet?: GlobalUpdater<T>["getVal"];
+  #innerSet!: GlobalUpdater<T>["setVal"];
+  #innerGet?: GlobalUpdater<T>["getVal"];
 
   #onceAction: symbol = Symbol();
   #isUpdate = false;
@@ -51,7 +51,7 @@ export class simpleStore<T> {
   }
 
   // proxy 不能是全局的，是绑定框架的运行机制，需要和生命周期绑在一起
-  doProxy(allocatorIndex?: number) {
+  #doProxy(allocatorIndex?: number) {
     const updater = simpleStore.#globalUpdater[allocatorIndex ?? 0];
     if (!updater) throw new Error("未注册，请在(app|main).(tx|tsx)中注册");
     const proxySome = updater(this.#value);
@@ -62,7 +62,7 @@ export class simpleStore<T> {
     console.log("pageKey", pageKey);
     const oldDoneArr = this.#pageSourceMap[pageKey];
 
-    const getValue = () => this.innerGet?.() ?? this.#value;
+    const getValue = () => this.#innerGet?.() ?? this.#value;
 
     if (oldDoneArr) {
       return [getValue, oldDoneArr[0]] as const;
@@ -98,14 +98,14 @@ export class simpleStore<T> {
           this.#isUpdate = false;
         }
       };
-    const finalSetFn = mySet(this.innerSet);
+    const finalSetFn = mySet(this.#innerSet);
     console.log("重新进行魔法的创建");
 
     const weakKey = [getValue, finalSetFn] as const;
     this.#pageSourceMap[pageKey] = [
       finalSetFn,
       this.#onceAction,
-      this.innerSet,
+      this.#innerSet,
     ];
 
     return weakKey;
@@ -118,17 +118,17 @@ export class simpleStore<T> {
       proxyVal: unknown,
     ) => [GlobalUpdater<T>["getVal"], GlobalUpdater<T>["setVal"]],
   ) => {
-    const proxySome = this.doProxy(allocatorIndex);
+    const proxySome = this.#doProxy(allocatorIndex);
     if (proxyLogic) {
-      [this.innerGet, this.innerSet] = proxyLogic(proxySome);
+      [this.#innerGet, this.#innerSet] = proxyLogic(proxySome);
       return this.#done(pageKey);
     }
     switch ((proxySome as { length: number }).length) {
       case 2:
         {
           const maybeReact = proxySome as [T, GlobalUpdater<T>["setVal"]];
-          this.innerSet = maybeReact[1];
-          this.innerGet = () => maybeReact[0];
+          this.#innerSet = maybeReact[1];
+          this.#innerGet = () => maybeReact[0];
         }
         break;
       default: {
@@ -137,9 +137,9 @@ export class simpleStore<T> {
           set value(_: S);
         };
         const maybeVue = proxySome as unknown as VueType<T>;
-        this.innerSet = (v) =>
+        this.#innerSet = (v) =>
           (maybeVue.value = isFun(v) ? v(maybeVue.value) : v);
-        this.innerGet = () => maybeVue.value;
+        this.#innerGet = () => maybeVue.value;
       }
     }
 
