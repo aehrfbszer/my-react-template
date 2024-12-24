@@ -41,7 +41,9 @@ export class simpleStore<T> {
     return index;
   }
 
-  getVal = () => this.#value;
+  #getStoreVal() {
+    return this.#value;
+  }
 
   constructor(key: string | symbol, value: T) {
     this.#value = value;
@@ -105,7 +107,7 @@ export class simpleStore<T> {
     return weakKey;
   }
 
-  getUpdater = (
+  #getUpdater = (
     pageKey: string | symbol,
     allocatorIndex?: number,
     proxyLogic?: (
@@ -148,12 +150,12 @@ export class simpleStore<T> {
       proxyVal: unknown,
     ) => [GlobalUpdater<U>["getVal"], GlobalUpdater<U>["setVal"]],
   ) {
-    return store.getUpdater(pageKey, allocatorIndex, proxyLogic);
+    return store.#getUpdater(pageKey, allocatorIndex, proxyLogic);
   }
 
   static lookAllStore = () => {
     return Reflect.ownKeys(simpleStore.#allStore).map((key) => ({
-      [key]: simpleStore.#allStore[key].getVal(),
+      [key]: simpleStore.#allStore[key].#getStoreVal(),
     }));
   };
 }
