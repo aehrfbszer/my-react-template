@@ -64,9 +64,11 @@ export class simpleStore<T> {
 
     const getValue = () => this.#innerGet?.() ?? this.#value;
 
-    if (oldDoneArr) {
+    if (oldDoneArr?.[2] === this.#innerSet) {
       return [getValue, oldDoneArr[0]] as const;
     }
+
+    Reflect.deleteProperty(this.#pageSourceMap, pageKey);
 
     const mySet =
       (theSetFn: GlobalUpdater<T>["setVal"]) => (v: SetFnParam<T>) => {

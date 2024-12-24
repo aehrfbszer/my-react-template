@@ -1,4 +1,3 @@
-import { useEffect } from "react";
 import { simpleStore } from "../store/simpleStore";
 import cStore from "../store/cStore";
 
@@ -10,10 +9,6 @@ function PageC() {
   const [getVal1, setVal1] = useStore(cStore, PageCId);
 
   console.log("页面C渲染");
-
-  useEffect(() => {
-    console.log("useEffect", getVal1());
-  }, [getVal1]);
 
   return (
     <div>
