@@ -23,7 +23,6 @@ export class simpleStore<T> {
     string | symbol,
     [
       proxySetFn: GlobalUpdater<T>["setVal"],
-      onceActionKey: symbol,
       rawSetFn: GlobalUpdater<T>["setVal"],
     ]
   > = {};
@@ -33,7 +32,6 @@ export class simpleStore<T> {
   #innerSet!: GlobalUpdater<T>["setVal"];
   #innerGet?: GlobalUpdater<T>["getVal"];
 
-  #onceAction: symbol = Symbol();
   #isUpdate = false;
 
   // 注册全局分配器，返回当前分配器的下标，即全局分配器数量减一
@@ -64,7 +62,7 @@ export class simpleStore<T> {
 
     const getValue = () => this.#innerGet?.() ?? this.#value;
 
-    if (oldDoneArr?.[2] === this.#innerSet) {
+    if (oldDoneArr?.[1] === this.#innerSet) {
       return [getValue, oldDoneArr[0]] as const;
     }
 
@@ -77,13 +75,12 @@ export class simpleStore<T> {
         this.#value = newVal;
         theSetFn(newVal);
         if (!this.#isUpdate) {
-          this.#onceAction = Symbol();
           this.#isUpdate = true;
           console.log("一次用户操作-----------------------------------");
           for (const pKey of Reflect.ownKeys(this.#pageSourceMap)) {
-            const [fn, syl, rawFn] = this.#pageSourceMap[pKey];
+            const [fn, rawFn] = this.#pageSourceMap[pKey];
 
-            const done = syl === this.#onceAction || rawFn === theSetFn;
+            const done = rawFn === theSetFn;
 
             console.log(
               "查询所有同一个store，包括触发者 ---33",
@@ -95,7 +92,6 @@ export class simpleStore<T> {
             console.log("进行更新其他未被更新的 ---44");
 
             fn(newVal);
-            this.#pageSourceMap[pKey][1] = this.#onceAction;
           }
           this.#isUpdate = false;
         }
@@ -104,11 +100,7 @@ export class simpleStore<T> {
     console.log("重新进行魔法的创建");
 
     const weakKey = [getValue, finalSetFn] as const;
-    this.#pageSourceMap[pageKey] = [
-      finalSetFn,
-      this.#onceAction,
-      this.#innerSet,
-    ];
+    this.#pageSourceMap[pageKey] = [finalSetFn, this.#innerSet];
 
     return weakKey;
   }
