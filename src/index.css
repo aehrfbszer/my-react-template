@@ -49,6 +49,7 @@
     /*算法会尝试使每行文本的长度大致相同。使两行内容看起来更加平衡。(balance、pretty效果相同，pretty更耗性能)*/
     text-wrap: pretty;
   }
+
   h1,
   h2,
   h3,

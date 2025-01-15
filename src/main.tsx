@@ -9,6 +9,7 @@ import LayoutWithAuth from "./LayoutWithAuth.tsx";
 import { simpleStore } from "./store/simpleStore.ts";
 
 simpleStore.register(useState);
+// biome-ignore lint/style/noNonNullAssertion: <explanation>
 createRoot(document.getElementById("root")!).render(
   <StrictMode>
     <BrowserRouter>
