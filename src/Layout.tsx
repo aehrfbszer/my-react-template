@@ -6,13 +6,13 @@ import "./Layout.css";
 const SomeContext = createContext<{ aa?: number }>({});
 
 const Layout = () => {
-	return (
-		<div className="layout-container">
-			<SomeContext value={{ aa: 1 }}>
-				<Outlet />
-			</SomeContext>
-		</div>
-	);
+  return (
+    <div className="layout-container">
+      <SomeContext value={{ aa: 1 }}>
+        <Outlet />
+      </SomeContext>
+    </div>
+  );
 };
 
 export default Layout;
