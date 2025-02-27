@@ -1,4 +1,5 @@
 type Allocator = (val: unknown) => unknown;
+type GarbageCollection = (...arg: any[]) => void;
 
 type SetFnParam<Q> = Q | ((vv: Q) => Q);
 interface GlobalUpdater<T> {
@@ -28,7 +29,7 @@ export class simpleStore<T> {
     ]
   > = {};
 
-  static #globalUpdater: Allocator[] = [];
+  static #globalUpdater: [Allocator, GarbageCollection][] = [];
 
   #innerSet!: GlobalUpdater<T>["setVal"];
   #innerGet!: GlobalUpdater<T>["getVal"];
@@ -36,13 +37,15 @@ export class simpleStore<T> {
   #isUpdate = false;
 
   // 注册全局分配器，返回当前分配器的下标，即全局分配器数量减一
-  static register(allocator: Allocator) {
+  static register(allocator: Allocator, gc: GarbageCollection) {
     const index = simpleStore.#globalUpdater.length;
-    simpleStore.#globalUpdater.push(allocator);
+    simpleStore.#globalUpdater.push([allocator, gc]);
     return index;
   }
 
   #getStoreVal() {
+    console.log(this.#pageSourceMap);
+
     return this.#value;
   }
 
@@ -53,10 +56,10 @@ export class simpleStore<T> {
 
   // proxy 不能是全局的，是绑定框架的运行机制，需要和生命周期绑在一起
   #doProxy(allocatorIndex?: number) {
-    const updater = simpleStore.#globalUpdater[allocatorIndex ?? 0];
+    const [updater, gc] = simpleStore.#globalUpdater[allocatorIndex ?? 0] ?? [];
     if (!updater) throw new Error("未注册，请在(app|main).(tx|tsx)中注册");
     const proxySome = updater(this.#value);
-    return proxySome;
+    return [proxySome, gc] as [unknown, GarbageCollection];
   }
 
   #getProxySet(rawSetFn: GlobalUpdater<T>["setVal"]) {
@@ -96,6 +99,7 @@ export class simpleStore<T> {
     const getValue = () => this.#innerGet?.();
 
     if (oldDoneArr?.[1] === this.#innerSet) {
+      console.log("已存在，无需创建");
       return [getValue, oldDoneArr[0]] as const;
     }
 
@@ -117,7 +121,7 @@ export class simpleStore<T> {
       proxyVal: unknown,
     ) => [GlobalUpdater<T>["getVal"], GlobalUpdater<T>["setVal"]],
   ) => {
-    const proxySome = this.#doProxy(allocatorIndex);
+    const [proxySome, gc] = this.#doProxy(allocatorIndex);
     if (proxyLogic) {
       [this.#innerGet, this.#innerSet] = proxyLogic(proxySome);
       return this.#done(pageKey);
@@ -128,6 +132,15 @@ export class simpleStore<T> {
           const maybeReact = proxySome as [T, GlobalUpdater<T>["setVal"]];
           this.#innerSet = maybeReact[1];
           this.#innerGet = () => maybeReact[0];
+          gc(() => {
+            return () => {
+              console.log(
+                "react 进行 gcccccccccccccccccccccccccccccccc",
+                pageKey,
+              );
+              Reflect.deleteProperty(this.#pageSourceMap, pageKey);
+            };
+          }, []);
         }
         break;
       default: {
@@ -140,6 +153,10 @@ export class simpleStore<T> {
           maybeVue.value = v;
         };
         this.#innerGet = () => maybeVue.value;
+        gc(() => {
+          console.log("vue 进行 gcccccccccccccccccccccccccccccccc", pageKey);
+          Reflect.deleteProperty(this.#pageSourceMap, pageKey);
+        });
       }
     }
 

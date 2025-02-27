@@ -1,4 +1,4 @@
-import { StrictMode, useState } from "react";
+import { StrictMode, useEffect, useState } from "react";
 import { createRoot } from "react-dom/client";
 import "./index.css";
 import App from "./App.tsx";
@@ -8,7 +8,7 @@ import Login from "./Login.tsx";
 import LayoutWithAuth from "./LayoutWithAuth.tsx";
 import { simpleStore } from "./store/simpleStore.ts";
 
-simpleStore.register(useState);
+simpleStore.register(useState, useEffect);
 // biome-ignore lint/style/noNonNullAssertion: <explanation>
 createRoot(document.getElementById("root")!).render(
   <StrictMode>
