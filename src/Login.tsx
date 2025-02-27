@@ -1,7 +1,7 @@
 import type React from "react";
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router";
-import { useLocalStorage } from "../utils/useLocalStorage.ts";
+import { useLocalStorage } from "./utils/useLocalStorage";
 
 const Login = () => {
   const [email, setEmail] = useState("");

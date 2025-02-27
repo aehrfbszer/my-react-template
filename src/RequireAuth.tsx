@@ -1,5 +1,5 @@
 import { Navigate } from "react-router";
-import { useLocalStorage } from "../utils/useLocalStorage.ts";
+import { useLocalStorage } from "./utils/useLocalStorage.ts";
 import type React from "react";
 
 const RequireAuth: React.FC<{ children: React.ReactNode }> = ({ children }) => {

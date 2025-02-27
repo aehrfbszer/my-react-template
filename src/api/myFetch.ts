@@ -1,4 +1,4 @@
-import { newFetchRequest } from "../../utils/fetchRequest.ts";
+import { newFetchRequest } from "../utils/fetchRequest";
 
 const {
   mainFetch: myFetch,
