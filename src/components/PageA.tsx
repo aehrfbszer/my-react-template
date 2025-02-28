@@ -2,6 +2,7 @@ import { useEffect, useId } from "react";
 import countStore from "../store/countStore";
 import { simpleStore } from "../store/simpleStore";
 import cStore from "../store/cStore";
+import { Button } from "@fluentui/react-components";
 
 const useStore = simpleStore.useStore;
 const pageAId = Symbol("pageA");
@@ -20,18 +21,18 @@ function PageA() {
     <div>
       <h2>我的store{getVal()} AAAAAAAA</h2>
       <div>
-        <button
+        <Button
           type="button"
           onClick={() => {
             setVal(getVal() + 1);
           }}
         >
           更新store
-        </button>
+        </Button>
       </div>
       <h2>我的store{getVal1().dgdfg} AAAAAAAA</h2>
       <div>
-        <button
+        <Button
           type="button"
           onClick={() => {
             setVal1((val) => ({
@@ -41,7 +42,7 @@ function PageA() {
           }}
         >
           更新store
-        </button>
+        </Button>
       </div>
     </div>
   );

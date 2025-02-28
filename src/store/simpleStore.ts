@@ -1,4 +1,5 @@
 type Allocator = (val: unknown) => unknown;
+// biome-ignore lint/suspicious/noExplicitAny: <explanation>
 type GarbageCollection = (...arg: any[]) => void;
 
 type SetFnParam<Q> = Q | ((vv: Q) => Q);

@@ -1,75 +1,40 @@
-import { useLocation } from "react-router";
-import { use, useEffect, useId, useState, useTransition } from "react";
-import { getHomeList } from "./api/home";
-import { SomeContext } from "./Layout";
-import PageA from "./components/PageA";
-import PageB from "./components/PageB";
-import { simpleStore } from "./store/simpleStore";
-import PageC from "./components/PageC";
+import Bpp from "./Bpp.tsx";
+import { BrowserRouter, Navigate, Route, Routes } from "react-router";
+import Layout from "./Layout.tsx";
+import Login from "./Login.tsx";
+import LayoutWithAuth from "./LayoutWithAuth.tsx";
 
 function App() {
-  const location = useLocation();
-  const [count, setCount] = useState(0);
-  const [isPending, startTransition] = useTransition();
-  const cc = use(SomeContext);
-  const ddd = useId();
-  const [show, setShow] = useState(true);
-  useEffect(() => {
-    startTransition(async () => {
-      try {
-        await getHomeList({ fasd: "3" });
-      } catch (e) {
-        console.log(e, "eee");
-      } finally {
-        setCount((pre) => pre + 1);
-      }
-    });
-  }, []);
   return (
-    <div>
-      <h1>hello {location.pathname}</h1>
-      <h2>{isPending ? "加载中" : "已完成"}</h2>
-      <button
-        type="button"
-        onClick={() => {
-          console.log("ggggg", simpleStore.lookAllStore());
-        }}
-      >
-        湖区全局
-      </button>
-      <h2> count是几=》 {count}</h2>
-      <h3>context 是 {cc.aa ?? "无"}</h3>
-      <h3>id is {ddd}</h3>
-      <h5
-        ref={(it) => {
-          console.log(it, "ref");
-          return () => {
-            console.log("清理 ref");
-          };
-        }}
-      >
-        ref
-      </h5>
-      <div>
-        <h1>A</h1>
-        <PageA />
-      </div>
-      <div>
-        <h1>B</h1>
-        <PageB />
-      </div>
-      <div>
-        <button type="button" onClick={() => setShow(!show)}>
-          切换C
-        </button>
-      </div>
-      {show && (
-        <div>
-          <h1>C</h1>
-          <PageC />
-        </div>
-      )}
-    </div>
+    <BrowserRouter>
+      <Routes>
+        <Route index element={<Navigate to="/home" replace />} />
+
+        <Route path="hello" element={<Bpp />} />
+        <Route path="home" element={<Bpp />} />
+
+        <Route path="login" element={<Login />} />
+
+        <Route path="systemA" element={<LayoutWithAuth />}>
+          <Route index element={<Bpp />} />
+          <Route path="query" element={<Bpp />} />
+          <Route path="edit" element={<Bpp />} />
+        </Route>
+
+        <Route path="fruit" element={<Layout />}>
+          <Route index element={<Bpp />} />
+          <Route path="apple" element={<Bpp />} />
+          <Route path="banana" element={<Bpp />} />
+        </Route>
+
+        {/*只是前缀*/}
+        <Route path="prefix">
+          <Route index element={<Bpp />} />
+          <Route path="anything" element={<Bpp />} />
+        </Route>
+        <Route path="*" element={<h1>404</h1>} />
+      </Routes>
+    </BrowserRouter>
   );
 }
 
