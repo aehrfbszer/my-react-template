@@ -1,5 +1,6 @@
 import { useLocation } from "react-router";
-import React, { use, useEffect, useId, useState, useTransition } from "react";
+import type React from "react";
+import { use, useEffect, useId, useState, useTransition } from "react";
 import { getHomeList } from "./api/home";
 import { SomeContext } from "./Layout";
 import PageA from "./components/PageA";
