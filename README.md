@@ -12,17 +12,6 @@ Currently, two official plugins are available:
 
 ## Expanding the ESLint configuration
 
-```bash
-# 查看依赖有什么新版本
-deno outdated
-
-# 更新依赖
-deno outdated --update
-
-# 更新依赖到最新，忽略大版本约束
-deno outdated --update --latest
-```
-
 If you are developing a production application, we recommend updating the
 configuration to enable type aware lint rules:
 
