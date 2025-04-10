@@ -3,15 +3,17 @@ import { BrowserRouter, Navigate, Route, Routes } from "react-router";
 import Layout from "./Layout.tsx";
 import Login from "./Login.tsx";
 import LayoutWithAuth from "./LayoutWithAuth.tsx";
+import Base64 from "./Base64.tsx";
 
 function App() {
   return (
     <BrowserRouter>
       <Routes>
-        <Route index element={<Navigate to="/home" replace />} />
+        <Route index element={<Navigate to="/base" replace />} />
 
         <Route path="hello" element={<Bpp />} />
         <Route path="home" element={<Bpp />} />
+        <Route path="base" element={<Base64 />} />
 
         <Route path="login" element={<Login />} />
 
