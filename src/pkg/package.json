@@ -2,8 +2,14 @@
   "name": "base64-wasm",
   "type": "module",
   "version": "0.1.0",
-  "files": ["base64_wasm_bg.wasm", "base64_wasm.js", "base64_wasm.d.ts"],
+  "files": [
+    "base64_wasm_bg.wasm",
+    "base64_wasm.js",
+    "base64_wasm.d.ts"
+  ],
   "main": "base64_wasm.js",
   "types": "base64_wasm.d.ts",
-  "sideEffects": ["./snippets/*"]
+  "sideEffects": [
+    "./snippets/*"
+  ]
 }
