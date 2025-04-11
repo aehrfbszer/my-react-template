@@ -1,6 +1,6 @@
 import countStore from "../store/countStore";
 import { simpleStore } from "../store/simpleStore";
-import { Button } from "@fluentui/react-components";
+import { Button } from "antd";
 
 const useStore = simpleStore.useStore;
 const pageBId = Symbol("pageB");
@@ -15,7 +15,6 @@ function PageB() {
       <h2>我的store{getVal()} BBBBBBBBB</h2>
       <div>
         <Button
-          type="button"
           onClick={() => {
             setVal(getVal() + 1);
           }}

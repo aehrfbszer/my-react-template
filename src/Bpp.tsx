@@ -7,7 +7,7 @@ import PageA from "./components/PageA";
 import PageB from "./components/PageB";
 import { simpleStore } from "./store/simpleStore";
 import PageC from "./components/PageC";
-import { Button } from "@fluentui/react-components";
+import { Button } from "antd";
 import "./Bpp.css";
 const Bpp: React.FC = () => {
   const location = useLocation();
@@ -32,8 +32,8 @@ const Bpp: React.FC = () => {
       <h1>hello {location.pathname}</h1>
       <h2>{isPending ? "加载中" : "已完成"}</h2>
       <Button
-        shape="circular"
-        type="button"
+        shape="round"
+        type="primary"
         onClick={() => {
           console.log("ggggg", simpleStore.lookAllStore());
         }}
@@ -62,7 +62,7 @@ const Bpp: React.FC = () => {
         <PageB />
       </div>
       <div>
-        <Button type="button" shape="circular" onClick={() => setShow(!show)}>
+        <Button shape="round" onClick={() => setShow(!show)}>
           切换C
         </Button>
       </div>

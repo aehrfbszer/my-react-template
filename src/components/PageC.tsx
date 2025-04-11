@@ -1,6 +1,6 @@
 import { simpleStore } from "../store/simpleStore";
 import cStore from "../store/cStore";
-import { Button } from "@fluentui/react-components";
+import { Button } from "antd";
 
 const useStore = simpleStore.useStore;
 
@@ -16,7 +16,6 @@ function PageC() {
       <h2>我的store{getVal1().dgdfg} AAAAAAAA</h2>
       <div>
         <Button
-          type="button"
           onClick={() => {
             setVal1((val) => ({
               ...val,

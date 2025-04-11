@@ -1,32 +1,35 @@
-import {
-  Button,
-  Field,
-  Input,
-  Radio,
-  RadioGroup,
-} from "@fluentui/react-components";
-
+import { Radio, Form, Input, Button } from "antd";
 import init, {
   base64_to_bytes_custom,
   bytes_to_base64,
 } from "./pkg/base64_wasm.js";
-import { useState } from "react";
+
+type FieldType = {
+  encodeOrDecode: "encode" | "decode";
+  encodedText?: string;
+  rawText?: string;
+  urlSafe: boolean;
+};
 
 await init();
 
 const Base64 = () => {
-  const [encodeOrDecode, setEncodeOrDecode] = useState("encode");
-  const [encodedText, setEncodedText] = useState("");
-  const [rawText, setRawText] = useState("");
-  const [urlSafe, setUrlSafe] = useState(false);
+  const [form] = Form.useForm();
 
-  const handleSubmit = () => {
+  const handleSubmit = ({
+    encodeOrDecode,
+    urlSafe,
+    rawText = "",
+    encodedText = "",
+  }: FieldType) => {
     if (encodeOrDecode === "encode") {
-      setEncodedText(
+      form.setFieldValue(
+        "encodedText",
         bytes_to_base64(new TextEncoder().encode(rawText), urlSafe),
       );
     } else if (encodeOrDecode === "decode") {
-      setRawText(
+      form.setFieldValue(
+        "rawText",
         new TextDecoder().decode(base64_to_bytes_custom(encodedText, urlSafe)),
       );
     }
@@ -34,61 +37,43 @@ const Base64 = () => {
 
   return (
     <div>
-      <form>
-        <RadioGroup
-          layout="horizontal"
-          value={urlSafe ? "urlSafe" : "normal"}
-          onChange={(_, data) => {
-            setUrlSafe(data.value === "urlSafe");
-          }}
+      <Form
+        form={form}
+        onFinish={handleSubmit}
+        initialValues={{ encodeOrDecode: "encode", urlSafe: false }}
+      >
+        <Form.Item<FieldType>
+          label="base64编码方式"
+          name="urlSafe"
+          rules={[{ required: true }]}
         >
-          <Radio value="normal" label="普通" />
-          <Radio value="urlSafe" label="URL安全" />
-        </RadioGroup>
-        <Field label="原始文本" size="large">
-          <Input
-            id="rawText"
-            name="rawText"
-            value={rawText}
-            onChange={(_, data) => {
-              setRawText(data.value);
-            }}
-            disabled={encodeOrDecode === "decode"}
-            placeholder="原始文本"
-          />
-        </Field>
-        <Field label="base64编码后" size="large">
-          <Input
-            id="encodedText"
-            name="encodedText"
-            value={encodedText}
-            onChange={(_, data) => {
-              setEncodedText(data.value);
-            }}
-            disabled={encodeOrDecode === "encode"}
-            placeholder="base64编码后"
-          />
-        </Field>
+          <Radio.Group>
+            <Radio value={false}> 普通 </Radio>
+            <Radio value={true}> url 安全 </Radio>
+          </Radio.Group>
+        </Form.Item>
+        <Form.Item<FieldType> label="原始文本" name="rawText">
+          <Input />
+        </Form.Item>
+        <Form.Item<FieldType> label="base64编码后" name="encodedText">
+          <Input />
+        </Form.Item>
 
-        <RadioGroup
-          value={encodeOrDecode}
-          onChange={(_, data) => {
-            setEncodeOrDecode(data.value);
-          }}
+        <Form.Item<FieldType>
+          label="编码/解码"
+          name="encodeOrDecode"
+          rules={[{ required: true }]}
         >
-          <Radio value="encode" label="编码" />
-          <Radio value="decode" label="解码" />
-        </RadioGroup>
+          <Radio.Group>
+            <Radio value="encode">编码</Radio>
+            <Radio value="decode">解码</Radio>
+          </Radio.Group>
+        </Form.Item>
 
-        <Button
-          appearance="primary"
-          size="large"
-          type="button"
-          onClick={handleSubmit}
-        >
+        <Button type="primary" htmlType="submit" shape="round">
           编/解码
         </Button>
-      </form>
+      </Form>
     </div>
   );
 };
