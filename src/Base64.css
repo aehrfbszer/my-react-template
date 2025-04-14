@@ -1,0 +1,8 @@
+.wrapper {
+  padding: 1em;
+
+  .flex-line {
+    display: flex;
+    align-items: center;
+  }
+}

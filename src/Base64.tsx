@@ -1,6 +1,7 @@
 import { Radio, Form, Input, Button, Typography } from "antd";
 import init, { base64_to_bytes, bytes_to_base64 } from "./pkg/base64_wasm.js";
 import { useState } from "react";
+import "./Base64.css";
 
 type FieldType = {
   encodeOrDecode: "encode" | "decode";
@@ -36,13 +37,8 @@ const Base64 = () => {
   };
 
   return (
-    <div>
-      <div
-        style={{
-          display: "flex",
-          alignItems: "center",
-        }}
-      >
+    <div className="wrapper">
+      <div className="flex-line">
         <Text>上次输入的文字：</Text>
         <Text copyable>{lastInputText}</Text>
       </div>
