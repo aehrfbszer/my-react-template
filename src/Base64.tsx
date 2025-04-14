@@ -74,7 +74,7 @@ const Base64 = () => {
               <Form.Item name="rawText">
                 {getFieldValue("encodeOrDecode") === "encode" ? (
                   <Input
-                    onChange={(e) => {
+                    onBlur={(e) => {
                       setLastInputText(e.target.value);
                     }}
                   />
@@ -96,7 +96,7 @@ const Base64 = () => {
               <Form.Item name="encodedText">
                 {getFieldValue("encodeOrDecode") === "decode" ? (
                   <Input
-                    onChange={(e) => {
+                    onBlur={(e) => {
                       setLastInputText(e.target.value);
                     }}
                   />
