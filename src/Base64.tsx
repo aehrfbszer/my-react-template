@@ -12,6 +12,12 @@ type FieldType = {
 const { Text } = Typography;
 await init();
 
+const CopyText = ({ value }: { value?: string }) => (
+  <Text copyable keyboard>
+    {value}
+  </Text>
+);
+
 const Base64 = () => {
   const [form] = Form.useForm();
 
@@ -57,19 +63,49 @@ const Base64 = () => {
             <Radio value={true}> url 安全 </Radio>
           </Radio.Group>
         </Form.Item>
-        <Form.Item<FieldType> label="原始文本" name="rawText">
-          <Input
-            onChange={(e) => {
-              setLastInputText(e.target.value);
-            }}
-          />
+        <Form.Item<FieldType>
+          label="原始文本"
+          shouldUpdate={(prev, curr) =>
+            prev.encodeOrDecode !== curr.encodeOrDecode
+          }
+        >
+          {({ getFieldValue }) => {
+            return (
+              <Form.Item name="rawText">
+                {getFieldValue("encodeOrDecode") === "encode" ? (
+                  <Input
+                    onChange={(e) => {
+                      setLastInputText(e.target.value);
+                    }}
+                  />
+                ) : (
+                  <CopyText />
+                )}
+              </Form.Item>
+            );
+          }}
         </Form.Item>
-        <Form.Item<FieldType> label="base64编码后" name="encodedText">
-          <Input
-            onChange={(e) => {
-              setLastInputText(e.target.value);
-            }}
-          />
+        <Form.Item<FieldType>
+          label="base64编码后"
+          shouldUpdate={(prev, curr) =>
+            prev.encodeOrDecode !== curr.encodeOrDecode
+          }
+        >
+          {({ getFieldValue }) => {
+            return (
+              <Form.Item name="encodedText">
+                {getFieldValue("encodeOrDecode") === "decode" ? (
+                  <Input
+                    onChange={(e) => {
+                      setLastInputText(e.target.value);
+                    }}
+                  />
+                ) : (
+                  <CopyText />
+                )}
+              </Form.Item>
+            );
+          }}
         </Form.Item>
 
         <Form.Item<FieldType>
