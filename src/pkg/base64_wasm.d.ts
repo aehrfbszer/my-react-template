@@ -5,7 +5,7 @@ export function bytes_to_urlbase64(bytes: Uint8Array): string;
 export function bytes_to_base64(bytes: Uint8Array, url_safe: boolean): string;
 export function base64_to_bytes_standard(base64_str: string): Uint8Array;
 export function base64_to_bytes_url(base64_str: string): Uint8Array;
-export function base64_to_bytes_custom(base64_str: string, url_safe: boolean): Uint8Array;
+export function base64_to_bytes(base64_str: string, url_safe: boolean): Uint8Array;
 
 export type InitInput = RequestInfo | URL | Response | BufferSource | WebAssembly.Module;
 
@@ -16,7 +16,7 @@ export interface InitOutput {
   readonly bytes_to_base64: (a: number, b: number, c: number) => [number, number];
   readonly base64_to_bytes_standard: (a: number, b: number) => [number, number];
   readonly base64_to_bytes_url: (a: number, b: number) => [number, number];
-  readonly base64_to_bytes_custom: (a: number, b: number, c: number) => [number, number];
+  readonly base64_to_bytes: (a: number, b: number, c: number) => [number, number];
   readonly __wbindgen_export_0: WebAssembly.Table;
   readonly __wbindgen_malloc: (a: number, b: number) => number;
   readonly __wbindgen_free: (a: number, b: number, c: number) => void;

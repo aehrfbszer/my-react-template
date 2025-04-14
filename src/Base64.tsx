@@ -1,8 +1,6 @@
-import { Radio, Form, Input, Button } from "antd";
-import init, {
-  base64_to_bytes_custom,
-  bytes_to_base64,
-} from "./pkg/base64_wasm.js";
+import { Radio, Form, Input, Button, Typography } from "antd";
+import init, { base64_to_bytes, bytes_to_base64 } from "./pkg/base64_wasm.js";
+import { useState } from "react";
 
 type FieldType = {
   encodeOrDecode: "encode" | "decode";
@@ -10,11 +8,13 @@ type FieldType = {
   rawText?: string;
   urlSafe: boolean;
 };
-
+const { Text } = Typography;
 await init();
 
 const Base64 = () => {
   const [form] = Form.useForm();
+
+  const [lastInputText, setLastInputText] = useState<string>("");
 
   const handleSubmit = ({
     encodeOrDecode,
@@ -30,13 +30,22 @@ const Base64 = () => {
     } else if (encodeOrDecode === "decode") {
       form.setFieldValue(
         "rawText",
-        new TextDecoder().decode(base64_to_bytes_custom(encodedText, urlSafe)),
+        new TextDecoder().decode(base64_to_bytes(encodedText, urlSafe)),
       );
     }
   };
 
   return (
     <div>
+      <div
+        style={{
+          display: "flex",
+          alignItems: "center",
+        }}
+      >
+        <Text>上次输入的文字：</Text>
+        <Text copyable>{lastInputText}</Text>
+      </div>
       <Form
         form={form}
         onFinish={handleSubmit}
@@ -53,10 +62,18 @@ const Base64 = () => {
           </Radio.Group>
         </Form.Item>
         <Form.Item<FieldType> label="原始文本" name="rawText">
-          <Input />
+          <Input
+            onChange={(e) => {
+              setLastInputText(e.target.value);
+            }}
+          />
         </Form.Item>
         <Form.Item<FieldType> label="base64编码后" name="encodedText">
-          <Input />
+          <Input
+            onChange={(e) => {
+              setLastInputText(e.target.value);
+            }}
+          />
         </Form.Item>
 
         <Form.Item<FieldType>

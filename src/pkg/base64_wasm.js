@@ -173,10 +173,10 @@ export function base64_to_bytes_url(base64_str) {
  * @param {boolean} url_safe
  * @returns {Uint8Array}
  */
-export function base64_to_bytes_custom(base64_str, url_safe) {
+export function base64_to_bytes(base64_str, url_safe) {
     const ptr0 = passStringToWasm0(base64_str, wasm.__wbindgen_malloc, wasm.__wbindgen_realloc);
     const len0 = WASM_VECTOR_LEN;
-    const ret = wasm.base64_to_bytes_custom(ptr0, len0, url_safe);
+    const ret = wasm.base64_to_bytes(ptr0, len0, url_safe);
     var v2 = getArrayU8FromWasm0(ret[0], ret[1]).slice();
     wasm.__wbindgen_free(ret[0], ret[1] * 1, 1);
     return v2;
