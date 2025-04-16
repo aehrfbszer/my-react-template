@@ -8,23 +8,26 @@
     "build": "tsc -b && vite build",
     "lint": "biome lint --write .",
     "format": "biome format --write .",
-    "preview": "vite preview"
+    "preview": "vite preview --host"
   },
   "dependencies": {
-    "antd": "^5.24.6",
+    "antd": "^5.24.7",
     "react": "^19.1.0",
     "react-dom": "^19.1.0",
     "react-router": "^7.5.0"
   },
   "devDependencies": {
     "@biomejs/biome": "^1.9.4",
-    "@types/react": "^19.1.1",
+    "@types/react": "^19.1.2",
     "@types/react-dom": "^19.1.2",
-    "@vitejs/plugin-react": "^4.3.4",
+    "@vitejs/plugin-react-oxc": "^0.1.1",
     "typescript": "^5.8.3",
     "vite": "^6.2.6"
   },
   "pnpm": {
-    "onlyBuiltDependencies": ["@biomejs/biome", "esbuild"]
+    "onlyBuiltDependencies": ["@biomejs/biome", "esbuild", "rolldown"],
+    "overrides": {
+      "vite": "npm:rolldown-vite@latest"
+    }
   }
 }
