@@ -1,4 +1,3 @@
-
 const removeAllItem = () => {
   localStorage.clear();
   sessionStorage.clear();
@@ -197,15 +196,15 @@ export const newFetchRequest = ({
         signal: AbortSignal;
         method: Method;
         /**
-        * Headers的规范中，key明确说是大小写不敏感的，一般来说，key输出时都会转为小写；
-        * value没有明说大小写是否敏感，也搜不到明确说明，但看chrome的实现，value应该是敏感的
-        * */
+         * Headers的规范中，key明确说是大小写不敏感的，一般来说，key输出时都会转为小写；
+         * value没有明说大小写是否敏感，也搜不到明确说明，但看chrome的实现，value应该是敏感的
+         * */
         headers: Headers;
         body?: string | URLSearchParams | FormData;
       } = {
         signal: signal,
         method: fetchConfig.method, // *GET, POST, PUT, DELETE, etc.
-        headers: new Headers()
+        headers: new Headers(),
       };
       // 自动携带token
       if (
@@ -548,7 +547,8 @@ export function httpErrorStatusHandle(
   if (errObj) {
     if (typeof errObj === "object") {
       const obj = errObj as Record<string, unknown>;
-      const text = obj["errorMessage"] || obj["message"] || obj["msg"] || obj["error"];
+      const text =
+        obj["errorMessage"] || obj["message"] || obj["msg"] || obj["error"];
       if (text) {
         msg = typeof text === "string" ? text : JSON.stringify(text);
       }

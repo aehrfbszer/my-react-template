@@ -1,6 +1,7 @@
 import { Radio, Form, Input, Button, Typography } from "antd";
 import init, { base64_to_bytes, bytes_to_base64 } from "./pkg/base64_wasm";
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { myFetch } from "./api/myFetch";
 import "./Base64.css";
 
 type FieldType = {
@@ -41,6 +42,23 @@ const Base64 = () => {
       );
     }
   };
+  useEffect(() => {
+    myFetch({
+      url: "/api/test/multipart",
+      method: "POST",
+      data: new FormData(),
+    });
+    myFetch({
+      url: "/api/test/urlencoded",
+      method: "POST",
+      data: new URLSearchParams([["a", "b"]]),
+    });
+    myFetch({
+      url: "/api/test/json",
+      method: "POST",
+      data: { a: "b" },
+    });
+  }, []);
 
   return (
     <div className="wrapper">
