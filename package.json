@@ -11,17 +11,17 @@
     "preview": "vite preview --host"
   },
   "dependencies": {
-    "antd": "^5.25.1",
+    "antd": "^5.26.0",
     "react": "^19.1.0",
     "react-dom": "^19.1.0",
-    "react-router": "^7.6.0"
+    "react-router": "^7.6.2"
   },
   "devDependencies": {
     "@biomejs/biome": "^1.9.4",
-    "@types/react": "^19.1.4",
-    "@types/react-dom": "^19.1.5",
-    "@vitejs/plugin-react-swc": "^3.9.0",
+    "@types/react": "^19.1.7",
+    "@types/react-dom": "^19.1.6",
+    "@vitejs/plugin-react-swc": "^3.10.2",
     "typescript": "~5.8.3",
-    "vite": "^6.3.5"
+    "vite": "npm:rolldown-vite@^6.3.18"
   }
 }

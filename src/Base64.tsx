@@ -1,5 +1,5 @@
 import { Radio, Form, Input, Button, Typography } from "antd";
-import init, { base64_to_bytes, bytes_to_base64 } from "./pkg/base64_wasm.js";
+import init, { base64_to_bytes, bytes_to_base64 } from "./pkg/base64_wasm";
 import { useState } from "react";
 import "./Base64.css";
 

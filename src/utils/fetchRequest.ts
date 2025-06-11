@@ -1,3 +1,4 @@
+
 const removeAllItem = () => {
   localStorage.clear();
   sessionStorage.clear();
@@ -5,25 +6,25 @@ const removeAllItem = () => {
 
 export interface EachRequestCustomOptions<T extends boolean = true> {
   /**【默认：false】 是否开启取消进行中的重复请求(舍弃旧的,舍弃时报error), 默认为 false，默认判断依据为url，method, params，data相同为重复*/
-  repeat_request_cancel: boolean;
+  repeatRequestCancel: boolean;
 
   /**【默认：true】是否开启loading层效果,首先需要传loading实例进来*/
   loading: boolean;
 
   /** 【默认：true】是否展示接口错误信息，首先需要传message实例进来*/
-  error_message_show: boolean;
+  errorMessageShow: boolean;
 
   /** 【默认：true】直接使用接口的报错信息，尝试获取接口错误信息失败则根据err code尝试使用通用错误处理，先要开启error_message_show*/
-  use_api_error_info: boolean;
+  useApiErrorInfo: boolean;
 
   /**【默认：false】针对repeat_request_cancel为true时，忽略判断逻辑中的params和data */
-  repeat_ignore_params: boolean;
+  repeatIgnoreParams: boolean;
 
   /**【默认：undefined】针对repeat_request_cancel为true时，直接忽略默认判断逻辑，使用该参数作为key区分是否重复*/
-  repeat_danger_key?: string;
+  repeatDangerKey?: string;
 
   /**【默认：false】当error_message_show为true，但又不想展示repeat_request_cancel的错误提示时*/
-  repeat_error_ignore: boolean;
+  repeatErrorIgnore: boolean;
 
   /**【默认：false】不需要token*/
   withoutToken: boolean;
@@ -32,26 +33,17 @@ export interface EachRequestCustomOptions<T extends boolean = true> {
   responseIsJson: T;
 }
 
+/** Method是大小写敏感，且必须大写的，小写能用是浏览器帮你自动转换了 */
 type Method =
-  | "get"
   | "GET"
-  | "delete"
   | "DELETE"
-  | "head"
   | "HEAD"
-  | "options"
   | "OPTIONS"
-  | "post"
   | "POST"
-  | "put"
   | "PUT"
-  | "patch"
   | "PATCH"
-  | "purge"
   | "PURGE"
-  | "link"
   | "LINK"
-  | "unlink"
   | "UNLINK";
 
 export type keyConfig = {
@@ -182,13 +174,13 @@ export const newFetchRequest = ({
 
     const myOptions: EachRequestCustomOptions<T> = Object.assign(
       {
-        repeat_request_cancel: false,
+        repeatRequestCancel: false,
         loading: true,
-        error_message_show: true,
-        use_api_error_info: true,
-        repeat_ignore_params: false,
-        // repeat_danger_key: undefined,
-        repeat_error_ignore: false,
+        errorMessageShow: true,
+        useApiErrorInfo: true,
+        repeatIgnoreParams: false,
+        // repeatDangerKey: undefined,
+        repeatErrorIgnore: false,
         withoutToken: false,
         responseIsJson: true,
       },
@@ -204,24 +196,26 @@ export const newFetchRequest = ({
       const config: {
         signal: AbortSignal;
         method: Method;
-        headers: {
-          Authorization?: string;
-          "Content-Type"?: string;
-        };
+        /**
+        * Headers的规范中，key明确说是大小写不敏感的，一般来说，key输出时都会转为小写；
+        * value没有明说大小写是否敏感，也搜不到明确说明，但看chrome的实现，value应该是敏感的
+        * */
+        headers: Headers;
         body?: string | URLSearchParams | FormData;
       } = {
         signal: signal,
         method: fetchConfig.method, // *GET, POST, PUT, DELETE, etc.
-        headers: {},
+        headers: new Headers()
       };
       // 自动携带token
       if (
         token &&
-        !noTokenUrls.some((noUrl) => url.includes(noUrl)) &&
-        !myOptions.withoutToken
+        !myOptions.withoutToken &&
+        !noTokenUrls.some((noUrl) => url.includes(noUrl))
       ) {
-        config.headers.Authorization = `Bearer ${token}`;
+        config.headers.set("Authorization", `Bearer ${token}`);
       }
+
       if (fetchConfig.data) {
         if (
           fetchConfig.data instanceof FormData ||
@@ -231,7 +225,7 @@ export const newFetchRequest = ({
           // FormData同理multipart/form-data，所以不需要设置Content-Type
           config.body = fetchConfig.data;
         } else {
-          config.headers["Content-Type"] = "application/json";
+          config.headers.set("Content-Type", "application/json");
           config.body = JSON.stringify(fetchConfig.data);
         }
       }
@@ -268,7 +262,7 @@ export const newFetchRequest = ({
       let countThing: (() => void) | undefined;
 
       // 这里算是性能优化
-      if (myOptions.repeat_request_cancel) {
+      if (myOptions.repeatRequestCancel) {
         const pendingKey = getPendingKey(
           {
             url: url,
@@ -277,8 +271,8 @@ export const newFetchRequest = ({
             // 警告：FormData没什么好方法tostring，直接toString是'[object FormData]'，所以会比不出来区别
             data: config.body?.toString(),
           },
-          myOptions.repeat_ignore_params,
-          myOptions.repeat_danger_key,
+          myOptions.repeatIgnoreParams,
+          myOptions.repeatDangerKey,
         );
 
         pendingCountObj[pendingKey] ??= 0;
@@ -288,7 +282,7 @@ export const newFetchRequest = ({
           cancelRequest("重复的请求");
         }
         countThing = () => {
-          pendingCountObj[pendingKey] -= 1;
+          pendingCountObj[pendingKey]! -= 1;
           if (pendingCountObj[pendingKey] === 0) {
             delete pendingCountObj[pendingKey];
           }
@@ -438,9 +432,9 @@ export const newFetchRequest = ({
             // 不一定是object，也可能是number，string等，这些都是符合json标准
             const errJson = await response.json();
 
-            if (myOptions.error_message_show) {
+            if (myOptions.errorMessageShow) {
               // 当成obj，具体逻辑让后面处理
-              const errObj = myOptions.use_api_error_info ? errJson : undefined;
+              const errObj = myOptions.useApiErrorInfo ? errJson : undefined;
               const msg = httpErrorStatusHandle(
                 response,
                 errObj,
@@ -554,7 +548,7 @@ export function httpErrorStatusHandle(
   if (errObj) {
     if (typeof errObj === "object") {
       const obj = errObj as Record<string, unknown>;
-      const text = obj.errorMessage || obj.message || obj.msg || obj.error;
+      const text = obj["errorMessage"] || obj["message"] || obj["msg"] || obj["error"];
       if (text) {
         msg = typeof text === "string" ? text : JSON.stringify(text);
       }
