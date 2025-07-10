@@ -141,6 +141,23 @@ const Base64 = () => {
           编/解码
         </Button>
       </Form>
+      <Button
+        onClick={() => {
+          fetch("http://localhost:8899/task/nao%F0%9F%8C%99fno%F0%9F%8C%8F/", {
+            method: "POST",
+            body: JSON.stringify({
+              name: "aa",
+              age: 77,
+              email: "dfsdqw@qq.com",
+            }),
+            headers: {
+              "Content-Type": "application/json",
+            },
+          });
+        }}
+      >
+        发送请求
+      </Button>
     </div>
   );
 };

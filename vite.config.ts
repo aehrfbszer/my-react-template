@@ -1,5 +1,5 @@
 import { defineConfig } from "vite";
-import react from "@vitejs/plugin-react";
+import react from "@vitejs/plugin-react-oxc";
 
 // https://vite.dev/config/
 export default defineConfig({
@@ -10,4 +10,7 @@ export default defineConfig({
   build: {
     target: "esnext",
   },
+  experimental:{
+    enableNativePlugin: true,
+  }
 });
