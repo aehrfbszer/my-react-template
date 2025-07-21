@@ -6,7 +6,6 @@ import { simpleStore } from "./store/simpleStore.ts";
 import { ConfigProvider } from "antd";
 
 simpleStore.register(useState, useEffect);
-// biome-ignore lint/style/noNonNullAssertion: <explanation>
 createRoot(document.getElementById("root")!).render(
   <StrictMode>
     <ConfigProvider

@@ -1,5 +1,4 @@
 type Allocator = (val: unknown) => unknown;
-// biome-ignore lint/suspicious/noExplicitAny: <explanation>
 type GarbageCollection = (...arg: any[]) => void;
 
 type SetFnParam<Q> = Q | ((vv: Q) => Q);
@@ -20,7 +19,6 @@ const isFun = (v: unknown) => typeof v === "function";
  */
 export class simpleStore<T> {
   #value: T;
-  // biome-ignore lint/suspicious/noExplicitAny: <explanation>
   static #allStore: Record<string | symbol, simpleStore<any>> = {};
   #pageSourceMap: Record<
     string | symbol,
