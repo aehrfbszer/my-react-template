@@ -139,7 +139,7 @@ fn fragmentMain(input: VertexOutput) -> @location(0) vec4f {
           },
         });
 
-        const GRID_SIZE = 32;
+        const GRID_SIZE = 512;
 
         // Create a uniform buffer that describes the grid.
         const uniformArray = new Float32Array([GRID_SIZE, GRID_SIZE]);

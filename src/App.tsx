@@ -12,7 +12,8 @@ import Login from "./Login.tsx";
 import LayoutWithAuth from "./LayoutWithAuth.tsx";
 import Base64 from "./Base64.tsx";
 import type { RouteObject } from "react-router";
-import WebGpu from "./WebGpu";
+import LearnNewThings from "./LearnNewThings/index.tsx";
+import "./styles/index.css";
 
 const AnotherRouterStyle = (
   <BrowserRouter>
@@ -51,7 +52,7 @@ console.log(AnotherRouterStyle, "AnotherRouterStyle");
 export const routes: RouteObject[] = [
   {
     index: true,
-    element: <Navigate to="/show" replace />,
+    element: <Navigate to={`/${LearnNewThings.path}`} replace />,
   },
   {
     path: "hello",
@@ -87,7 +88,7 @@ export const routes: RouteObject[] = [
       },
     ],
   },
-  WebGpu,
+  LearnNewThings,
   {
     path: "prefix",
     children: [

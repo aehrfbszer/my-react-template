@@ -11,6 +11,8 @@ createRoot(document.getElementById("root")!).render(
     <ConfigProvider
       theme={{
         token: {
+          /// antd 不支持其他的颜色表示，比如hsl, color(display-p3 1 0.5 0.5 / 0.5)等
+
           // Seed Token，影响范围大
           colorPrimary: "#00b96b",
           borderRadius: 2,

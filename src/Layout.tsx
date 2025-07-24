@@ -1,4 +1,4 @@
-import { Link, Outlet, useLocation } from "react-router";
+import { Link, Outlet, useLocation, type RouteObject } from "react-router";
 import { createContext } from "react";
 import { Menu } from "antd";
 import "./Layout.css";
@@ -32,12 +32,9 @@ const Layout = ({ menus }: LayoutProps) => {
     </div>
   );
 };
-export interface SubRoute {
+export type SubRoute = RouteObject & {
   name: string;
-  index?: boolean;
-  element: React.ReactNode;
-  path?: string;
-}
+};
 export const getMenus = (prefix: string, subRoutes: SubRoute[]) =>
   subRoutes.map((item) => {
     const basename = `/${prefix}`;

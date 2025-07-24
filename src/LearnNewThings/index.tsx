@@ -1,13 +1,13 @@
-import type { RouteObject } from "react-router";
-import Layout, { getMenus, type SubRoute } from "../Layout";
 import Bpp from "../Bpp";
+import Layout, { getMenus, type SubRoute } from "../Layout";
+import NewHtml from "./NewHtml";
 import WebGpuExample from "./WebGpuExample";
 
 const subRoutes: SubRoute[] = [
   {
     name: "index页面",
     index: true,
-    element: <Bpp />,
+    element: <NewHtml />,
   },
   {
     name: "apple页面",
@@ -26,9 +26,10 @@ const subRoutes: SubRoute[] = [
   },
 ];
 
-export const path = "webgpu";
+export const path = "lets-learn";
 
-const subPage: RouteObject = {
+const subPage: SubRoute = {
+  name: "一些WebGPU相关",
   path,
   element: <Layout menus={getMenus(path, subRoutes)} />,
   children: subRoutes,
