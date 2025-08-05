@@ -4,6 +4,24 @@ import { useState, useEffect } from "react";
 import { myFetch } from "./api/myFetch";
 import "./Base64.css";
 
+// const wasmObj = {
+//   my_namespace: { imported_func: (arg) => console.log(arg) },
+// }
+// WebAssembly.instantiateStreaming(
+//   myFetch({
+//     url: "/static/base64_wasm.wasm",
+//     method: "POST",
+//   }, {
+
+//     responseIsJson: false,
+//   }),
+//   wasmObj
+// ).then(
+//   (obj) => {
+//     console.log("wasm init success", obj);
+//   }
+// )
+
 type FieldType = {
   encodeOrDecode: "encode" | "decode";
   encodedText?: string;
@@ -43,10 +61,16 @@ const Base64 = () => {
     }
   };
   useEffect(() => {
-    myFetch({
-      url: "/api/test/multipart",
-      method: "POST",
-      data: new FormData(),
+    myFetch(
+      {
+        url: "/users/all",
+        method: "GET",
+      },
+      {
+        responseIsJson: false,
+      },
+    ).then((res) => {
+      console.log("获取用户列表", res);
     });
     myFetch({
       url: "/api/test/urlencoded",
@@ -143,20 +167,33 @@ const Base64 = () => {
       </Form>
       <Button
         onClick={() => {
-          fetch("http://localhost:8899/task/nao%F0%9F%8C%99fno%F0%9F%8C%8F/", {
+          myFetch({
+            url: "/task/nao%F0%9F%8C%99fno%F0%9F%8C%8F/",
             method: "POST",
-            body: JSON.stringify({
+            data: {
               name: "aa",
               age: 77,
               email: "dfsdqw@qq.com",
-            }),
-            headers: {
-              "Content-Type": "application/json",
             },
           });
         }}
       >
         发送请求
+      </Button>
+      <Button
+        onClick={() => {
+          myFetch({
+            url: "/be-expired",
+            method: "POST",
+            data: {
+              name: "aa",
+              age: 77,
+              email: "dfsdqw@qq.com",
+            },
+          });
+        }}
+      >
+        使token过期
       </Button>
     </div>
   );

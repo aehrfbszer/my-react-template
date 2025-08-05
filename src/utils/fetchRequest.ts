@@ -3,7 +3,7 @@ const removeAllItem = () => {
   sessionStorage.clear();
 };
 
-export interface EachRequestCustomOptions<T extends boolean = true> {
+export interface EachRequestCustomOptions<T extends boolean> {
   /**【默认：false】 是否开启取消进行中的重复请求(舍弃旧的,舍弃时报error), 默认为 false，默认判断依据为url，method, params，data相同为重复*/
   repeatRequestCancel: boolean;
 
@@ -77,7 +77,7 @@ export interface FetchConfig {
   data?: Record<string, unknown> | FormData | URLSearchParams;
   /** 由于参数是在params中，所以键值对中的值没有必要允许number，请提前转成数字字符 */
   params?: {
-    [key: string]: string | undefined;
+    [key: string]: string;
   };
 
   [key: string]: unknown;
@@ -93,26 +93,19 @@ const reloadPage = () => {
 export const newFetchRequest = ({
   baseUrl,
   timeout = 60 * 1000,
-  loginUrl,
   refreshTokenUrl,
-  withoutTokenUrls = [],
   getToken,
   handleMessage = null,
   loadingFunction = null,
-  extraConfig = {
-    loginNeedToken: false,
-    refreshTokenNeedToken: true,
-  },
   panicOrRestart = reloadPage,
 }: {
   baseUrl: string;
   timeout?: number;
-  loginUrl: string;
   refreshTokenUrl: {
     fetchConfig: FetchConfig;
-    setToken: (res: unknown) => void;
+    moreConfig?: Partial<EachRequestCustomOptions<boolean>>;
+    handleResponse: (res: unknown) => void;
   };
-  withoutTokenUrls?: Array<string>;
   getToken: () => string;
   handleMessage?: null | {
     success?: (msg: string) => void;
@@ -123,10 +116,7 @@ export const newFetchRequest = ({
     finish?: () => void;
     error?: () => void;
   };
-  extraConfig?: {
-    loginNeedToken: false;
-    refreshTokenNeedToken: true;
-  };
+
   panicOrRestart?: () => never;
 }) => {
   const resetLoadingTool = (instance: {
@@ -153,17 +143,29 @@ export const newFetchRequest = ({
   };
   const pendingArrMap: Map<string, Array<() => void>> = new Map();
 
-  const noTokenUrls = [...withoutTokenUrls];
-  if (!extraConfig.loginNeedToken) {
-    noTokenUrls.push(loginUrl);
-  }
-  if (!extraConfig.refreshTokenNeedToken) {
-    noTokenUrls.push(refreshTokenUrl.fetchConfig.url);
-  }
+  async function mainFetch<U>(fetchConfig: FetchConfig): Promise<U>;
 
-  async function mainFetch<U, T extends boolean = true>(
+  async function mainFetch<U>(
+    fetchConfig: FetchConfig,
+    customOptions: Partial<EachRequestCustomOptions<true>>,
+    count?: number,
+  ): Promise<U>;
+
+  async function mainFetch<U>(
+    fetchConfig: FetchConfig,
+    customOptions: Partial<EachRequestCustomOptions<false>>,
+    count?: number,
+  ): Promise<Response>;
+
+  async function mainFetch<U, T extends boolean>(
     fetchConfig: FetchConfig,
     customOptions?: Partial<EachRequestCustomOptions<T>>,
+    count?: number,
+  ): Promise<T extends true ? U : Response>;
+
+  async function mainFetch<U, T extends boolean>(
+    fetchConfig: FetchConfig,
+    customOptions: Partial<EachRequestCustomOptions<T>> = {},
     count = 0,
   ): Promise<T extends true ? U : Response> {
     const controller = new AbortController();
@@ -189,9 +191,8 @@ export const newFetchRequest = ({
     const token = getToken();
 
     try {
-      const url = fetchConfig.url.startsWith("http")
-        ? fetchConfig.url
-        : `${baseUrl}${fetchConfig.url}`;
+      const url = new URL(fetchConfig.url, baseUrl);
+
       const config: {
         signal: AbortSignal;
         method: Method;
@@ -207,11 +208,7 @@ export const newFetchRequest = ({
         headers: new Headers(),
       };
       // 自动携带token
-      if (
-        token &&
-        !myOptions.withoutToken &&
-        !noTokenUrls.some((noUrl) => url.includes(noUrl))
-      ) {
+      if (token && !myOptions.withoutToken) {
         config.headers.set("Authorization", `Bearer ${token}`);
       }
 
@@ -230,15 +227,11 @@ export const newFetchRequest = ({
       }
 
       let urlParams = "";
-      let finalUrl = url;
+      let finalUrl = url.toString();
 
       if (fetchConfig.params) {
-        // json来回一遍是为了过滤undefined字段
-        const filterParams: Record<string, string> = JSON.parse(
-          JSON.stringify(fetchConfig.params),
-        );
-        urlParams = new URLSearchParams(filterParams).toString();
-        finalUrl = `${url}?${urlParams}`;
+        urlParams = new URLSearchParams(fetchConfig.params).toString();
+        finalUrl = `${finalUrl}?${urlParams}`;
       }
 
       const cancelRequest = (reason: string) => controller.abort(reason);
@@ -264,7 +257,7 @@ export const newFetchRequest = ({
       if (myOptions.repeatRequestCancel) {
         const pendingKey = getPendingKey(
           {
-            url: url,
+            url: url.toString(),
             method: fetchConfig.method,
             params: urlParams,
             // 警告：FormData没什么好方法tostring，直接toString是'[object FormData]'，所以会比不出来区别
@@ -334,7 +327,7 @@ export const newFetchRequest = ({
          */
 
         // 尝试刷新token失败了，返回错误让上一层处理(其实这里处理也行)
-        if (url.includes(refreshTokenUrl.fetchConfig.url)) {
+        if (finalUrl.includes(refreshTokenUrl.fetchConfig.url)) {
           try {
             const errInfo = await response.json();
             console.log("登录失效", errInfo);
@@ -394,8 +387,11 @@ export const newFetchRequest = ({
             pendingArrMap.set(token, pendingArr);
 
             try {
-              const tokenRes = await mainFetch(refreshTokenUrl.fetchConfig);
-              refreshTokenUrl.setToken(tokenRes);
+              const tokenRes = await mainFetch(
+                refreshTokenUrl.fetchConfig,
+                refreshTokenUrl.moreConfig,
+              );
+              await refreshTokenUrl.handleResponse(tokenRes);
               // const oldArr = pendingArrMap.get(token)
               // oldArr?.forEach((cb) => {
               //     cb()
@@ -407,7 +403,6 @@ export const newFetchRequest = ({
               // 把这个第一个401请求返回
               return onceAgainRequest();
             } catch (e) {
-              console.log(e);
               handleMessage?.error?.("登录失效");
               return panicOrRestart();
             }
