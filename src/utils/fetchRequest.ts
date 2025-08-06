@@ -403,6 +403,7 @@ export const newFetchRequest = ({
               // 把这个第一个401请求返回
               return onceAgainRequest();
             } catch (e) {
+              console.error("刷新token失败", e);
               handleMessage?.error?.("登录失效");
               return panicOrRestart();
             }

@@ -1,7 +1,10 @@
 import Bpp from "../Bpp";
-import Layout, { getMenus, type SubRoute } from "../Layout";
-import NewHtml from "./NewHtml";
-import WebGpuExample from "./WebGpuExample";
+import { getMenus, type SubRoute } from "../Layout";
+import { lazy } from "react";
+
+const NewHtml = lazy(() => import("./NewHtml.tsx"));
+const WebGpuExample = lazy(() => import("./WebGpuExample.tsx"));
+const Layout = lazy(() => import("../Layout.tsx"));
 
 const subRoutes: SubRoute[] = [
   {
