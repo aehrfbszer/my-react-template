@@ -1,2 +1,1 @@
-biome format --write $(git diff --cached --name-only --diff-filter=ACMR | sed 's| |\\ |g')
-git update-index --again
+lint-staged
