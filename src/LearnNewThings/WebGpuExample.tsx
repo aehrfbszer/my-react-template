@@ -1,8 +1,9 @@
-import { useEffect } from "react";
+import { useEffect, useId } from "react";
 
 const WebGpuExample = () => {
+  const gameDom = useId();
   useEffect(() => {
-    const canvas = document.getElementById("gameDom") as HTMLCanvasElement;
+    const canvas = document.getElementById(gameDom) as HTMLCanvasElement;
     if (!canvas) {
       console.error("Canvas element not found");
       return;
@@ -73,7 +74,7 @@ const WebGpuExample = () => {
         });
         device.queue.writeBuffer(vertexBuffer, /*bufferOffset=*/ 0, vertices);
 
-        const vertexBufferLayout = {
+        const vertexBufferLayout: GPUVertexBufferLayout = {
           arrayStride: 8,
           attributes: [
             {
@@ -170,11 +171,11 @@ fn fragmentMain(input: VertexOutput) -> @location(0) vec4f {
         // Finish the command buffer and immediately submit it.
         device.queue.submit([encoder.finish()]);
       });
-  }, []);
+  }, [gameDom]);
 
   return (
     <div>
-      <canvas id="gameDom" width="512" height="512"></canvas>
+      <canvas id={gameDom} width="512" height="512"></canvas>
       <a
         href="https://codelabs.developers.google.com/your-first-webgpu-app?hl=zh-cn#6"
         target="_blank"
