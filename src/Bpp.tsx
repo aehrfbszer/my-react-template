@@ -1,13 +1,13 @@
-import { useLocation } from "react-router";
+import { Button } from "antd";
 import type React from "react";
-import { use, useEffect, useId, useState, useTransition } from "react";
+import { use, useId, useState, useTransition } from "react";
+import { useLocation } from "react-router";
 import { getHomeList } from "./api/home";
-import { SomeContext } from "./Layout";
 import PageA from "./components/PageA";
 import PageB from "./components/PageB";
-import { simpleStore } from "./store/simpleStore";
 import PageC from "./components/PageC";
-import { Button } from "antd";
+import { SomeContext } from "./Layout";
+import { simpleStore } from "./store/simpleStore";
 import "./Bpp.css";
 const Bpp: React.FC = () => {
   const location = useLocation();
@@ -16,19 +16,33 @@ const Bpp: React.FC = () => {
   const cc = use(SomeContext);
   const ddd = useId();
   const [show, setShow] = useState(true);
-  useEffect(() => {
+
+  const func = async () => {
     startTransition(async () => {
       try {
         await getHomeList({ fasd: "3" });
       } catch (e) {
         console.log(e, "eee");
       } finally {
-        setCount((pre) => pre + 1);
+        startTransition(() => {
+          setCount((pre) => pre + 1);
+        });
       }
     });
-  }, []);
+  };
+
   return (
     <div className="bpp">
+      <Button
+        shape="round"
+        type="primary"
+        onClick={() => {
+          console.log("点击了按钮");
+          func();
+        }}
+      >
+        请求数据
+      </Button>
       <h1>hello {location.pathname}</h1>
       <h2>{isPending ? "加载中" : "已完成"}</h2>
       <Button
