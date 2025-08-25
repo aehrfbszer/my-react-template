@@ -12,14 +12,14 @@
     "prepare": "husky"
   },
   "dependencies": {
-    "antd": "^5.27.0",
+    "antd": "6.0.0-alpha.2",
     "react": "^19.1.1",
     "react-dom": "^19.1.1",
-    "react-router": "^7.8.1"
+    "react-router": "^7.8.2"
   },
   "devDependencies": {
-    "@biomejs/biome": "^2.2.0",
-    "@types/react": "^19.1.10",
+    "@biomejs/biome": "^2.2.2",
+    "@types/react": "^19.1.11",
     "@types/react-dom": "^19.1.7",
     "@vitejs/plugin-react": "^5.0.1",
     "@webgpu/types": "^0.1.64",

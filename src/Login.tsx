@@ -1,5 +1,5 @@
 import type React from "react";
-import { useEffect, useState } from "react";
+import { useEffect, useId, useState } from "react";
 import { useNavigate } from "react-router";
 import { useLocalStorage } from "./utils/useLocalStorage";
 
@@ -7,6 +7,9 @@ const Login = () => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const navigate = useNavigate();
+
+  const usernameId = useId();
+  const passwordId = useId();
 
   const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
@@ -31,20 +34,20 @@ const Login = () => {
         <div className="login-form">
           <form onSubmit={handleSubmit}>
             <div className="form-group">
-              <label htmlFor="email">Email</label>
+              <label htmlFor={usernameId}>Email</label>
               <input
                 type="email"
-                id="email"
+                id={usernameId}
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 required
               />
             </div>
             <div className="form-group">
-              <label htmlFor="password">Password</label>
+              <label htmlFor={passwordId}>Password</label>
               <input
                 type="password"
-                id="password"
+                id={passwordId}
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 required

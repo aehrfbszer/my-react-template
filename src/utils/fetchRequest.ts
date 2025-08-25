@@ -543,8 +543,7 @@ export function httpErrorStatusHandle(
   if (errObj) {
     if (typeof errObj === "object") {
       const obj = errObj as Record<string, unknown>;
-      const text =
-        obj["errorMessage"] || obj["message"] || obj["msg"] || obj["error"];
+      const text = obj.errorMessage || obj.message || obj.msg || obj.error;
       if (text) {
         msg = typeof text === "string" ? text : JSON.stringify(text);
       }
