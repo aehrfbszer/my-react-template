@@ -9,7 +9,9 @@
     "lint": "biome lint --write .",
     "format": "biome format --write .",
     "preview": "vite preview --host",
-    "prepare": "husky"
+    "prepare": "husky",
+    "test": "vitest",
+    "test:coverage": "vitest run --coverage"
   },
   "dependencies": {
     "antd": "6.0.0-alpha.3",
@@ -22,11 +24,13 @@
     "@types/react": "^19.1.13",
     "@types/react-dom": "^19.1.9",
     "@vitejs/plugin-react": "^5.0.3",
+    "@vitest/coverage-v8": "^3.2.4",
     "@webgpu/types": "^0.1.65",
     "husky": "^9.1.7",
     "lint-staged": "^16.2.0",
     "mitata": "^1.0.34",
     "typescript": "^5.9.2",
-    "vite": "npm:rolldown-vite@^7.1.12"
+    "vite": "npm:rolldown-vite@^7.1.12",
+    "vitest": "^3.2.4"
   }
 }

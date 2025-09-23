@@ -10,7 +10,17 @@ export default defineConfig({
   build: {
     target: "esnext",
   },
-  experimental:{
+  experimental: {
     enableNativePlugin: true,
-  }
+  },
+  test: {
+    globals: true,
+    silent: false,
+    setupFiles: ['./src/test/setup.ts'],
+    testTimeout: 20000, // 设置全局超时时间为 20 秒
+    coverage: {
+      provider: 'v8',
+      reporter: ['text', 'json', 'html'],
+    },
+  },
 });

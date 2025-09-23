@@ -16,13 +16,26 @@ export interface EachRequestCustomOptions<T extends boolean> {
   /** 【默认：true】直接使用接口的报错信息，尝试获取接口错误信息失败则根据err code尝试使用通用错误处理，先要开启error_message_show*/
   useApiErrorInfo: boolean;
 
-  /**【默认：false】针对repeat_request_cancel为true时，忽略判断逻辑中的params和data */
+  /**【默认：false】针对repeatRequestCancel为true时，忽略判断逻辑中的params和data */
   repeatIgnoreParams: boolean;
 
-  /**【默认：undefined】针对repeat_request_cancel为true时，直接忽略默认判断逻辑，使用该参数作为key区分是否重复*/
+  /**【默认：undefined】针对repeatRequestCancel为true时，直接忽略默认判断逻辑，使用该参数作为key区分是否重复*/
   repeatDangerKey?: string;
 
-  /**【默认：false】当error_message_show为true，但又不想展示repeat_request_cancel的错误提示时*/
+  /**
+   * 【默认：undefined】当contentType设置时，headers中会设置Content-Type为对应值
+   * 默认情况是不需要的，默认已经根据data类型设置了
+   * 但如果接口有特殊要求，可以使用该参数
+   */
+  contentType?: string;
+
+  /**
+   * 【默认：undefined】当需要在请求头中携带其他参数时使用，会覆盖默认预配置的headers
+   * 注意：如果要设置Content-Type，推荐直接使用contentType参数
+   */
+  moreHeaders?: Record<string, string>;
+
+  /**【默认：false】当error_message_show为true，但又不想展示repeatRequestCancel的错误提示时*/
   repeatErrorIgnore: boolean;
 
   /**【默认：false】不需要token*/
@@ -72,9 +85,17 @@ export interface FetchConfig {
   url: string;
   method: Method;
   /** URLSearchParams=> "application/x-www-form-urlencoded"；
-   * data为object=>"application/json"；
-   * FormData=>"multipart/form-data" */
-  data?: Record<string, unknown> | FormData | URLSearchParams;
+   * ReadableStream=>"application/octet-stream"；
+   * FormData=>"multipart/form-data"
+   * data为object=>"application/json"，会使用JSON.stringify处理
+   * data为其他类型（string、number、array等）=>"application/json"，会使用JSON.stringify处理
+   * */
+  data?:
+    | ReadableStream
+    | FormData
+    | URLSearchParams
+    | Record<string, unknown>
+    | any;
   /** 由于参数是在params中，所以键值对中的值没有必要允许number，请提前转成数字字符 */
   params?: {
     [key: string]: string;
@@ -106,7 +127,7 @@ export const newFetchRequest = ({
     moreConfig?: Partial<EachRequestCustomOptions<boolean>>;
     handleResponse: (res: unknown) => void;
   };
-  getToken: () => string;
+  getToken?: () => string;
   handleMessage?: null | {
     success?: (msg: string) => void;
     error?: (msg: string) => void;
@@ -188,7 +209,7 @@ export const newFetchRequest = ({
       customOptions,
     );
 
-    const token = getToken();
+    const token = getToken?.();
 
     try {
       const url = new URL(fetchConfig.url, baseUrl);
@@ -201,7 +222,7 @@ export const newFetchRequest = ({
          * value没有明说大小写是否敏感，也搜不到明确说明，但看chrome的实现，value应该是敏感的
          * */
         headers: Headers;
-        body?: string | URLSearchParams | FormData;
+        body?: URLSearchParams | FormData | ReadableStream | string;
       } = {
         signal: signal,
         method: fetchConfig.method, // *GET, POST, PUT, DELETE, etc.
@@ -220,9 +241,22 @@ export const newFetchRequest = ({
           //  Fetch 标准规定如果 body 是一个 URLSearchParams 对象，那么它应该序列化为 application/x-www-form-urlencoded
           // FormData同理multipart/form-data，所以不需要设置Content-Type
           config.body = fetchConfig.data;
+        } else if (fetchConfig.data instanceof ReadableStream) {
+          config.body = fetchConfig.data;
+          config.headers.set("Content-Type", "application/octet-stream");
         } else {
           config.headers.set("Content-Type", "application/json");
           config.body = JSON.stringify(fetchConfig.data);
+        }
+      }
+
+      if (myOptions.contentType) {
+        config.headers.set("Content-Type", myOptions.contentType);
+      }
+
+      if (myOptions.moreHeaders) {
+        for (const [key, val] of Object.entries(myOptions.moreHeaders)) {
+          config.headers.set(key, val);
         }
       }
 
@@ -351,13 +385,18 @@ export const newFetchRequest = ({
         }
         // 接口返回401，说明信息过期，尝试去刷新token
         else if (response.status === 401) {
+          // 没有token，登录状态不由此处封装逻辑处理，需要使用者自己在别处处理，此处直接panic
+          if (!token) {
+            return panicOrRestart();
+          }
+
           // 这里的情况count一般都是0，如果count大于0，那就是刷新token成功了，但请求接口还是401，说明count大于0是后端逻辑错误
           if (count < 3) {
             // 把请求保存下来，但还不执行
             const onceAgainRequest = () =>
               mainFetch<U, T>(fetchConfig, customOptions, count + 1);
             // 看一下有没有新token
-            const nowToken = getToken();
+            const nowToken = getToken?.();
             if (nowToken && nowToken !== token) {
               // 新token有了，直接重试请求
               return onceAgainRequest();
