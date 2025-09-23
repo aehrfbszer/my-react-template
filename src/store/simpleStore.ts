@@ -56,7 +56,7 @@ export class simpleStore<T> {
   // proxy 不能是全局的，是绑定框架的运行机制，需要和生命周期绑在一起
   #doProxy(allocatorIndex?: number) {
     const [updater, gc] = simpleStore.#globalUpdater[allocatorIndex ?? 0] ?? [];
-    if (!updater) throw new Error("未注册，请在(app|main).(tx|tsx)中注册");
+    if (!updater) throw new Error("未注册，请在(app|main).(ts|tsx)中注册");
     const proxySome = updater(this.#value);
     return [proxySome, gc] as [unknown, GarbageCollection];
   }
