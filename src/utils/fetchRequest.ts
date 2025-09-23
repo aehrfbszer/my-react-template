@@ -4,9 +4,6 @@ const removeAllItem = () => {
 };
 
 export interface EachRequestCustomOptions<T extends boolean> {
-  /**【默认：false】 是否开启取消进行中的重复请求(舍弃旧的,舍弃时报error), 默认为 false，默认判断依据为url，method, params，data相同为重复*/
-  repeatRequestCancel: boolean;
-
   /**【默认：true】是否开启loading层效果,首先需要传loading实例进来*/
   loading: boolean;
 
@@ -15,12 +12,6 @@ export interface EachRequestCustomOptions<T extends boolean> {
 
   /** 【默认：true】直接使用接口的报错信息，尝试获取接口错误信息失败则根据err code尝试使用通用错误处理，先要开启error_message_show*/
   useApiErrorInfo: boolean;
-
-  /**【默认：false】针对repeatRequestCancel为true时，忽略判断逻辑中的params和data */
-  repeatIgnoreParams: boolean;
-
-  /**【默认：undefined】针对repeatRequestCancel为true时，直接忽略默认判断逻辑，使用该参数作为key区分是否重复*/
-  repeatDangerKey?: string;
 
   /**
    * 【默认：undefined】当contentType设置时，headers中会设置Content-Type为对应值
@@ -34,9 +25,6 @@ export interface EachRequestCustomOptions<T extends boolean> {
    * 注意：如果要设置Content-Type，推荐直接使用contentType参数
    */
   moreHeaders?: Record<string, string>;
-
-  /**【默认：false】当error_message_show为true，但又不想展示repeatRequestCancel的错误提示时*/
-  repeatErrorIgnore: boolean;
 
   /**【默认：false】不需要token*/
   withoutToken: boolean;
@@ -64,22 +52,6 @@ export type keyConfig = {
   params?: string;
   data?: string;
 };
-
-/***
- * @description: 生成唯一的每个请求的唯一key
- */
-function getPendingKey(
-  config: keyConfig,
-  noParams = false,
-  dangerCancelKey?: string,
-) {
-  const { url, method, params, data } = config;
-  if (dangerCancelKey) {
-    return dangerCancelKey;
-  }
-  if (noParams) return [url, method].join("&");
-  return [url, method, params, data].join("&");
-}
 
 export interface FetchConfig {
   url: string;
@@ -155,10 +127,6 @@ export const newFetchRequest = ({
     handleMessage = instance;
   };
 
-  const pendingCountObj: {
-    [key: string]: number;
-  } = {};
-
   const LoadingInstance = {
     _count: 0,
   };
@@ -196,13 +164,9 @@ export const newFetchRequest = ({
 
     const myOptions: EachRequestCustomOptions<T> = Object.assign(
       {
-        repeatRequestCancel: false,
         loading: true,
         errorMessageShow: true,
         useApiErrorInfo: true,
-        repeatIgnoreParams: false,
-        // repeatDangerKey: undefined,
-        repeatErrorIgnore: false,
         withoutToken: false,
         responseIsJson: true,
       },
@@ -285,39 +249,8 @@ export const newFetchRequest = ({
         cancelRequest("请求超时！");
       }, timeout);
 
-      let countThing: (() => void) | undefined;
-
-      // 这里算是性能优化
-      if (myOptions.repeatRequestCancel) {
-        const pendingKey = getPendingKey(
-          {
-            url: url.toString(),
-            method: fetchConfig.method,
-            params: urlParams,
-            // 警告：FormData没什么好方法tostring，直接toString是'[object FormData]'，所以会比不出来区别
-            data: config.body?.toString(),
-          },
-          myOptions.repeatIgnoreParams,
-          myOptions.repeatDangerKey,
-        );
-
-        pendingCountObj[pendingKey] ??= 0;
-        pendingCountObj[pendingKey] += 1;
-        if (pendingCountObj[pendingKey] > 1) {
-          // 只有请求发出了，取消请求才有意义，就是上面要写const doRequest = fetch(finalUrl, config)的意义
-          cancelRequest("重复的请求");
-        }
-        countThing = () => {
-          pendingCountObj[pendingKey]! -= 1;
-          if (pendingCountObj[pendingKey] === 0) {
-            delete pendingCountObj[pendingKey];
-          }
-        };
-      }
-
       // finally为这个请求做一些原子化操作
       const response = await doRequest.finally(() => {
-        countThing?.();
         if (myOptions.loading) {
           if (LoadingInstance._count > 0) LoadingInstance._count--;
         }

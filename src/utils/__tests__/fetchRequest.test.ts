@@ -96,43 +96,6 @@ describe("newFetchRequest", () => {
     expect(mockLoadingFunction.finish).toHaveBeenCalled();
   });
 
-  // 重复请求测试
-  it("应该正确处理重复请求取消", async () => {
-    const mockHandleMessage = {
-      success: vi.fn<(msg: string) => void>(),
-      error: vi.fn<(msg: string) => void>(),
-    };
-    const fetchInstance = createTestInstance(mockHandleMessage);
-    const mockResponse = { data: "test" };
-
-    mockFetch.mockImplementationOnce(() =>
-      Promise.resolve({
-        ok: true,
-        json: () => Promise.resolve(mockResponse),
-      }),
-    );
-
-    const request = {
-      url: "/test",
-      method: "GET" as const,
-    };
-
-    // 发起第一个请求
-    const promise1 = fetchInstance.mainFetch(request, {
-      repeatRequestCancel: true,
-    });
-
-    // 立即发起第二个相同的请求
-    const promise2 = fetchInstance.mainFetch(request, {
-      repeatRequestCancel: true,
-    });
-
-    const result = await promise1;
-    expect(result).toEqual(mockResponse);
-    await expect(promise2).rejects.toBe("请求失败");
-    expect(mockHandleMessage.error).toHaveBeenCalledWith("重复的请求");
-  }, 30000);
-
   // 工具重置测试
   it("应该正确处理 resetLoadingTool 和 resetMessageTool", async () => {
     const mockHandleMessage = {
@@ -256,92 +219,6 @@ describe("newFetchRequest", () => {
 
     const expectedUrl = `http://api.example.com/test?${new URLSearchParams(params).toString()}`;
     expect(mockFetch.mock.calls[0][0]).toBe(expectedUrl);
-  });
-
-  // 测试重复请求忽略参数
-  it("应该正确处理重复请求忽略参数", async () => {
-    const mockHandleMessage = {
-      success: vi.fn<(msg: string) => void>(),
-      error: vi.fn<(msg: string) => void>(),
-    };
-    const fetchInstance = createTestInstance(mockHandleMessage);
-    const mockResponse = { data: "test" };
-
-    mockFetch.mockResolvedValueOnce({
-      ok: true,
-      json: () => Promise.resolve(mockResponse),
-    });
-    // .mockResolvedValueOnce({
-    //     ok: true,
-    //     json: () => Promise.resolve(mockResponse),
-    // })
-
-    const request1 = {
-      url: "/test",
-      method: "POST" as const,
-      data: { id: 1 },
-    };
-
-    const request2 = {
-      url: "/test",
-      method: "POST" as const,
-      data: { id: 2 },
-    };
-
-    // 第一个请求
-    const promise1 = fetchInstance.mainFetch(request1, {
-      repeatRequestCancel: true,
-      repeatIgnoreParams: true,
-    });
-
-    // 第二个请求，虽然参数不同，但因为设置了 repeatIgnoreParams，所以应该被取消
-    const promise2 = fetchInstance.mainFetch(request2, {
-      repeatRequestCancel: true,
-      repeatIgnoreParams: true,
-    });
-
-    await promise1;
-    await expect(promise2).rejects.toBe("请求失败");
-    expect(mockHandleMessage.error).toHaveBeenCalledWith("重复的请求");
-  });
-
-  // 测试重复请求使用自定义key
-  it("应该正确处理重复请求自定义key", async () => {
-    const fetchInstance = createTestInstance();
-    const mockResponse = { data: "test" };
-
-    mockFetch.mockResolvedValueOnce({
-      ok: true,
-      json: () => Promise.resolve(mockResponse),
-    });
-
-    const customKey = "customKey";
-
-    // 不同的URL，但使用相同的customKey
-    const promise1 = fetchInstance.mainFetch(
-      {
-        url: "/test1",
-        method: "GET",
-      },
-      {
-        repeatRequestCancel: true,
-        repeatDangerKey: customKey,
-      },
-    );
-
-    const promise2 = fetchInstance.mainFetch(
-      {
-        url: "/test2",
-        method: "GET",
-      },
-      {
-        repeatRequestCancel: true,
-        repeatDangerKey: customKey,
-      },
-    );
-
-    await promise1;
-    await expect(promise2).rejects.toBe("请求失败");
   });
 
   // 多次token刷新失败测试
