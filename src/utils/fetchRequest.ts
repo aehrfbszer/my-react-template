@@ -421,6 +421,14 @@ export const newFetchRequest = ({
 
             return Promise.reject(errJson);
           } catch {
+            const msg = httpErrorStatusHandle(
+              response,
+              undefined,
+              panicOrRestart,
+            ); // 处理错误状态码
+            if (msg) {
+              handleMessage?.error?.(`【${response.status}】${msg}`);
+            }
             return Promise.reject([
               response,
               "错误不是json,且已经用了json方法，数据流被消耗，无法再次用类似text等方法读取",
