@@ -90,6 +90,7 @@ export const newFetchRequest = ({
   getToken,
   handleMessage = null,
   loadingFunction = null,
+  globalHeaders,
   panicOrRestart = reloadPage,
 }: {
   baseUrl: string;
@@ -109,7 +110,7 @@ export const newFetchRequest = ({
     finish?: () => void;
     error?: () => void;
   };
-
+  globalHeaders?: Record<string, string>;
   panicOrRestart?: () => never;
 }) => {
   const resetLoadingTool = (instance: {
@@ -211,6 +212,12 @@ export const newFetchRequest = ({
         } else {
           config.headers.set("Content-Type", "application/json");
           config.body = JSON.stringify(fetchConfig.data);
+        }
+      }
+
+      if (globalHeaders) {
+        for (const [key, val] of Object.entries(globalHeaders)) {
+          config.headers.set(key, val);
         }
       }
 
