@@ -1,7 +1,7 @@
-import { Radio, Form, Input, Button, Typography } from "antd";
-import init, { base64_to_bytes, bytes_to_base64 } from "./pkg/base64_wasm";
-import { useState, useEffect } from "react";
+import { Button, Form, Input, Radio, Typography } from "antd";
+import { useEffect, useState } from "react";
 import { myFetch } from "./api/myFetch";
+import init, { base64_to_bytes, bytes_to_base64 } from "./pkg/base64_wasm";
 import "./Base64.css";
 
 // const wasmObj = {
@@ -179,6 +179,18 @@ const Base64 = () => {
         }}
       >
         发送请求
+      </Button>
+      <Button
+        onClick={() => {
+          myFetch({
+            url: "/set-cookie",
+            method: "POST",
+          }).then((res) => {
+            console.log("设置cookie结果", res);
+          });
+        }}
+      >
+        设置cookie
       </Button>
       <Button
         onClick={() => {

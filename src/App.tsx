@@ -1,16 +1,17 @@
+import type { RouteObject } from "react-router";
 import {
   BrowserRouter,
+  createBrowserRouter,
   Navigate,
   Route,
   RouterProvider,
   Routes,
-  createBrowserRouter,
 } from "react-router";
-import type { RouteObject } from "react-router";
 import LearnNewThings from "./LearnNewThings/index.tsx";
 import "./styles/index.css";
-import { Spin } from "antd";
-import { lazy, Suspense } from "react";
+import { message, Spin } from "antd";
+import { lazy, Suspense, useEffect } from "react";
+import { resetMessageTool } from "./api/myFetch.ts";
 
 const Layout = lazy(() => import("./Layout.tsx"));
 const Bpp = lazy(() => import("./Bpp.tsx"));
@@ -116,6 +117,26 @@ const router = createBrowserRouter(routes, {
   basename: import.meta.env.VITE_BASE_NAME,
 });
 
-const App = () => <RouterProvider router={router} />;
+const App = () => {
+  const [messageApi, contextHolder] = message.useMessage();
+
+  useEffect(() => {
+    resetMessageTool({
+      success: (msg: string) => {
+        messageApi.success(msg);
+      },
+      error: (msg: string) => {
+        messageApi.error(msg);
+      },
+    });
+  }, [messageApi]);
+
+  return (
+    <>
+      {contextHolder}
+      <RouterProvider router={router} />;
+    </>
+  );
+};
 
 export default App;

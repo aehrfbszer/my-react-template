@@ -1,3 +1,4 @@
+import { message } from "antd";
 import { newFetchRequest } from "../utils/fetchRequest";
 
 const None = Symbol.for("None");
@@ -22,7 +23,16 @@ const {
       }
     },
   },
+  panicOrRestart: () => {
+    message.error("需要重新登录");
+    location.href = "/login";
+    throw new Error("需要重新登录");
+  },
   getToken: () => localStorage.getItem("token") || "",
+  globalHeaders: {
+    credentials: "same-origin",
+    // credentials: "include",
+  },
 });
 
 export { myFetch, resetLoadingTool, resetMessageTool };
