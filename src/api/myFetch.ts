@@ -1,19 +1,18 @@
 import { message } from "antd";
-import { newFetchRequest } from "../utils/fetchRequest";
+import { HttpClient } from "../utils/http-client";
 
 const None = Symbol.for("None");
 
-const {
-  mainFetch: myFetch,
-  resetLoadingTool,
-  resetMessageTool,
-} = newFetchRequest({
+const client = new HttpClient({
   baseUrl: import.meta.env.VITE_BASE_URL as string,
-  timeout: 60 * 1000,
-  refreshTokenUrl: {
+  timeout: 60_000,
+  refreshTokenConfig: {
     fetchConfig: {
       url: "/refresh-token",
       method: "POST",
+    },
+    moreConfig: {
+      responseIsJson: false,
     },
     handleResponse: (res: unknown) => {
       const token = res ?? None;
@@ -29,10 +28,10 @@ const {
     throw new Error("需要重新登录");
   },
   getToken: () => localStorage.getItem("token") || "",
-  globalHeaders: {
-    credentials: "same-origin",
-    // credentials: "include",
-  },
 });
 
-export { myFetch, resetLoadingTool, resetMessageTool };
+const myFetch = client.fetch.bind(client);
+const setMessageFunction = client.setMessageFunction.bind(client);
+const setLoadingFunction = client.setLoadingFunction.bind(client);
+
+export { myFetch, setMessageFunction, setLoadingFunction };

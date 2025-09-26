@@ -11,7 +11,7 @@ import LearnNewThings from "./LearnNewThings/index.tsx";
 import "./styles/index.css";
 import { message, Spin } from "antd";
 import { lazy, Suspense, useEffect } from "react";
-import { resetMessageTool } from "./api/myFetch.ts";
+import { setMessageFunction } from "./api/myFetch.ts";
 
 const Layout = lazy(() => import("./Layout.tsx"));
 const Bpp = lazy(() => import("./Bpp.tsx"));
@@ -121,7 +121,7 @@ const App = () => {
   const [messageApi, contextHolder] = message.useMessage();
 
   useEffect(() => {
-    resetMessageTool({
+    setMessageFunction({
       success: (msg: string) => {
         messageApi.success(msg);
       },
