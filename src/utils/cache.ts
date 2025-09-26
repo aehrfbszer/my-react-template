@@ -15,12 +15,12 @@ export class RequestCache {
 
   set<T>(key: string, value: T, ttl = this.#defaultTTL): void {
     this.#cleanup();
-    
+
     if (this.#cache.size >= this.#capacity) {
       const [firstKey] = this.#cache.keys();
       this.#cache.delete(firstKey);
     }
-    
+
     this.#cache.set(key, {
       data: value,
       expires: Date.now() + ttl,
@@ -29,14 +29,14 @@ export class RequestCache {
 
   get<T>(key: string): T | undefined {
     const item = this.#cache.get(key);
-    
+
     if (!item) return undefined;
-    
+
     if (Date.now() > item.expires) {
       this.#cache.delete(key);
       return undefined;
     }
-    
+
     return item.data as T;
   }
 

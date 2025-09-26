@@ -1,32 +1,31 @@
-import type { LoadingFunction } from './loading';
+import type { LoadingFunction } from "./loading";
 
 /** HTTP请求配置 */
-export interface FetchConfig {
+export interface FetchConfig extends RequestInit {
   url: string;
-  method: 'GET' | 'POST' | 'PUT' | 'DELETE' | 'PATCH' | 'HEAD' | 'OPTIONS';
+  method: "GET" | "POST" | "PUT" | "DELETE" | "PATCH" | "HEAD" | "OPTIONS";
   data?: unknown;
   params?: Record<string, string>;
-  [key: string]: unknown;
 }
 
 /** 通用请求选项 */
 export interface CommonOptions {
   /** 是否开启loading层效果 */
-  loading?: boolean;
+  loading: boolean;
   /** 是否展示错误信息 */
-  errorMessageShow?: boolean;
+  errorMessageShow: boolean;
   /** 是否使用API错误信息 */
-  useApiErrorInfo?: boolean;
+  useApiErrorInfo: boolean;
   /** 自定义Content-Type */
-  contentType?: string;
+  contentType: string;
   /** 额外的请求头 */
-  moreHeaders?: Record<string, string>;
+  moreHeaders: Record<string, string> | null;
   /** 是否不需要token */
-  withoutToken?: boolean;
-  /** 是否启用缓存 */
-  cache?: boolean;
+  withoutToken: boolean;
+  /** 是否启用缓存，慎用，绝大多数情况是不需要开启的 */
+  cache: boolean;
   /** 缓存时间（毫秒） */
-  cacheTTL?: number;
+  cacheTTL: number;
 }
 
 /** JSON响应选项 */
@@ -35,7 +34,7 @@ export interface JsonOptions extends CommonOptions {
 }
 
 /** 原始响应选项 */
-export interface RawOptions extends CommonOptions {
+export interface RawOptions extends Partial<CommonOptions> {
   responseIsJson: false;
 }
 
@@ -45,7 +44,7 @@ export interface HttpClientConfig {
   timeout?: number;
   refreshTokenConfig: {
     fetchConfig: FetchConfig;
-    moreConfig?: Partial<CommonOptions>;
+    moreConfig: Partial<CommonOptions> & { responseIsJson: boolean };
     handleResponse: (res: unknown) => void | Promise<void>;
   };
   getToken?: () => string;

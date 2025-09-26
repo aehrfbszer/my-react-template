@@ -1,13 +1,13 @@
-import { LoadingManager, type LoadingFunction } from './loading';
-import { RequestCache } from './cache';
-import { HttpError, TokenError, NetworkError } from './errors';
-import type { 
-  HttpClientConfig,
+import { RequestCache } from "./cache";
+import { HttpError, NetworkError, TokenError } from "./errors";
+import { type LoadingFunction, LoadingManager } from "./loading";
+import type {
   CommonOptions,
+  FetchConfig,
+  HttpClientConfig,
   JsonOptions,
   RawOptions,
-  FetchConfig 
-} from './types';
+} from "./types";
 
 type MessageFunction = {
   success?: (msg: string) => void;
@@ -23,15 +23,17 @@ const defaultPanicHandler = () => {
 };
 
 const extractErrorMessage = (errorData: unknown): string | undefined => {
-  if (typeof errorData === 'object' && errorData) {
+  if (typeof errorData === "object" && errorData) {
     const obj = errorData as Record<string, unknown>;
     const text = obj.errorMessage || obj.message || obj.msg || obj.error;
     if (text) {
-      return typeof text === 'string' ? text : JSON.stringify(text);
+      return typeof text === "string" ? text : JSON.stringify(text);
     }
   }
   return undefined;
 };
+
+type PendingCallback = [retry: () => void, cancel: () => void];
 
 /**
  * HTTP客户端实现
@@ -43,11 +45,11 @@ export class HttpClient {
   readonly #cache: RequestCache;
   #loadingManager: LoadingManager;
   #messageFunction: MessageFunction | null;
-  readonly #refreshTokenConfig: HttpClientConfig['refreshTokenConfig'];
+  readonly #refreshTokenConfig: HttpClientConfig["refreshTokenConfig"];
   readonly #getToken?: () => string;
   readonly #globalHeaders: Record<string, string>;
   readonly #panicOrRestart: () => never;
-  readonly #pendingTokenRefresh = new Map<string, Array<() => void>>();
+  readonly #pendingTokenRefresh = new Map<string, Array<PendingCallback>>();
 
   constructor({
     baseUrl,
@@ -57,7 +59,7 @@ export class HttpClient {
     messageFunction = null,
     loadingFunction = null,
     globalHeaders = {},
-    panicOrRestart = defaultPanicHandler
+    panicOrRestart = defaultPanicHandler,
   }: HttpClientConfig) {
     this.#baseUrl = baseUrl;
     this.#timeout = timeout;
@@ -91,7 +93,7 @@ export class HttpClient {
    */
   async fetch<T>(
     config: FetchConfig,
-    options?: Partial<JsonOptions>
+    options?: Partial<JsonOptions>,
   ): Promise<T>;
 
   /**
@@ -99,10 +101,16 @@ export class HttpClient {
    * @param config 请求配置
    * @param options 非JSON响应的配置项
    */
-  async fetch(
+  async fetch(config: FetchConfig, options: RawOptions): Promise<Response>;
+
+  /**
+   * @param config 请求配置
+   * @param options
+   */
+  async fetch<T>(
     config: FetchConfig,
-    options: RawOptions
-  ): Promise<Response>;
+    options: Partial<CommonOptions> & { responseIsJson: boolean },
+  ): Promise<T | Response>;
 
   /**
    * 请求实现
@@ -111,11 +119,13 @@ export class HttpClient {
    */
   async fetch<T>(
     config: FetchConfig,
-    options: Partial<CommonOptions & { responseIsJson?: boolean }> = { responseIsJson: true }
+    options: Partial<CommonOptions & { responseIsJson: boolean }> = {
+      responseIsJson: true,
+    },
   ): Promise<T | Response> {
     const finalOptions = this.#getDefaultOptions(options);
-    
-    if (finalOptions.cache && config.method === 'GET') {
+
+    if (finalOptions.cache && config.method === "GET") {
       const cacheKey = this.#getCacheKey(config);
       const cached = this.#cache.get<T>(cacheKey);
       if (cached) return cached;
@@ -124,12 +134,16 @@ export class HttpClient {
     try {
       const response = await this.#doFetch(config, finalOptions);
       const data = await this.#handleResponse<T>(response, finalOptions);
-      
-      if (finalOptions.cache && config.method === 'GET' && finalOptions.responseIsJson) {
+
+      if (
+        finalOptions.cache &&
+        config.method === "GET" &&
+        finalOptions.responseIsJson
+      ) {
         const cacheKey = this.#getCacheKey(config);
         this.#cache.set(cacheKey, data, finalOptions.cacheTTL);
       }
-      
+
       return data;
     } catch (error) {
       if (error instanceof TokenError) {
@@ -142,7 +156,9 @@ export class HttpClient {
   /**
    * 获取合并后的默认配置
    */
-  #getDefaultOptions(options: Partial<CommonOptions & { responseIsJson?: boolean }>): Required<CommonOptions & { responseIsJson: boolean }> {
+  #getDefaultOptions(
+    options: Partial<CommonOptions & { responseIsJson?: boolean }>,
+  ): Required<CommonOptions & { responseIsJson: boolean }> {
     return {
       loading: true,
       errorMessageShow: true,
@@ -151,9 +167,9 @@ export class HttpClient {
       responseIsJson: true,
       cache: false,
       cacheTTL: 5 * 60 * 1000,
-      contentType: '',
-      moreHeaders: {},
-      ...options
+      contentType: "",
+      moreHeaders: null,
+      ...options,
     };
   }
 
@@ -161,10 +177,10 @@ export class HttpClient {
    * 生成缓存键
    */
   #getCacheKey(config: FetchConfig): string {
-    const params = config.params 
+    const params = config.params
       ? new URLSearchParams(config.params).toString()
-      : '';
-    return `${config.method}:${config.url}${params ? `?${params}` : ''}`;
+      : "";
+    return `${config.method}:${config.url}${params ? `?${params}` : ""}`;
   }
 
   /**
@@ -172,7 +188,7 @@ export class HttpClient {
    */
   async #doFetch(
     config: FetchConfig,
-    options: Required<CommonOptions>
+    options: Required<CommonOptions>,
   ): Promise<Response> {
     const controller = new AbortController();
     const { signal } = controller;
@@ -182,15 +198,15 @@ export class HttpClient {
         this.#loadingManager.start();
       }
 
-      const fetchPromise = fetch(this.#buildUrl(config), {
-        ...this.#buildFetchConfig(config, options),
-        signal
-      });
+      const fetchPromise = fetch(
+        this.#buildUrl(config),
+        this.#buildFetchConfig(config, options, signal),
+      );
 
       const timeoutPromise = new Promise<Response>((_, reject) => {
         setTimeout(() => {
-          controller.abort();
-          reject(new NetworkError('请求超时'));
+          controller.abort("请求超时");
+          reject(new NetworkError("请求超时"));
         }, this.#timeout);
       });
 
@@ -218,31 +234,55 @@ export class HttpClient {
    */
   #buildFetchConfig(
     config: FetchConfig,
-    options: Required<CommonOptions>
+    options: Required<CommonOptions>,
+    signal: AbortSignal,
   ): RequestInit {
+    const {
+      method,
+      data,
+      params: _p,
+      url: _u,
+      headers: useHeaders,
+      signal: userSignal,
+      ...rest
+    } = config;
+
     const headers = new Headers();
-    
+
+    // ++++++++++++++++++++++++++++++++++++++++++++++++++这一部分是默认逻辑
     const token = this.#getToken?.();
-    if (token && !options.withoutToken) {
-      headers.set('Authorization', `Bearer ${token}`);
+    if (token && !options.withoutToken && !headers.has("Authorization")) {
+      headers.set("Authorization", `Bearer ${token}`);
     }
 
-    if (config.data) {
-      if (config.data instanceof FormData || config.data instanceof URLSearchParams) {
+    if (data && !headers.has("Content-Type")) {
+      if (data instanceof FormData || data instanceof URLSearchParams) {
         // 浏览器会自动设置正确的Content-Type
-      } else if (config.data instanceof ReadableStream) {
-        headers.set('Content-Type', 'application/octet-stream');
+      } else if (data instanceof ReadableStream) {
+        headers.set("Content-Type", "application/octet-stream");
       } else {
-        headers.set('Content-Type', 'application/json');
+        headers.set("Content-Type", "application/json");
       }
     }
+    // ++++++++++++++++++++++++++++++++++++++++++++++++++默认逻辑结束
 
+    // ++++++++++++++++++++++++++++++++++++++++++++++++++这一部分是用户自定义的全局逻辑，应该覆盖默认逻辑
     for (const [key, value] of Object.entries(this.#globalHeaders)) {
       headers.set(key, value);
     }
+    // ++++++++++++++++++++++++++++++++++++++++++++++++++用户自定义的全局逻辑结束
 
+    // ++++++++++++++++++++++++++++++++++++++++++++++++++这一部分是每次请求时传入的配置，应该覆盖前面所有逻辑
+    if (useHeaders) {
+      for (const [key, value] of Object.entries(useHeaders)) {
+        headers.set(key, value as string);
+      }
+    }
+    // ++++++++++++++++++++++++++++++++++++++++++++++++++每次请求时传入的配置结束
+
+    // +++++++++++++++++++++++++++++++++++++++++++++++++++这一部分是用户每次请求时传入的配置之外还附加的额外选项，应该覆盖前面所有逻辑
     if (options.contentType) {
-      headers.set('Content-Type', options.contentType);
+      headers.set("Content-Type", options.contentType);
     }
 
     if (options.moreHeaders) {
@@ -250,11 +290,14 @@ export class HttpClient {
         headers.set(key, value);
       }
     }
+    // +++++++++++++++++++++++++++++++++++++++++++++++++++用户每次请求时传入的配配置之外还附加的额外选项结束
 
     return {
-      method: config.method,
+      ...rest,
+      method,
       headers,
-      body: this.#getRequestBody(config.data)
+      body: this.#getRequestBody(data),
+      signal: userSignal ?? signal,
     };
   }
 
@@ -263,15 +306,15 @@ export class HttpClient {
    */
   #getRequestBody(data: unknown): BodyInit | undefined {
     if (!data) return undefined;
-    
+
     if (
-      data instanceof FormData || 
-      data instanceof URLSearchParams || 
+      data instanceof FormData ||
+      data instanceof URLSearchParams ||
       data instanceof ReadableStream
     ) {
       return data;
     }
-    
+
     return JSON.stringify(data);
   }
 
@@ -280,7 +323,7 @@ export class HttpClient {
    */
   async #handleResponse<T>(
     response: Response,
-    options: Required<CommonOptions & { responseIsJson: boolean }>
+    options: Required<CommonOptions & { responseIsJson: boolean }>,
   ): Promise<T | Response> {
     if (!response.ok) {
       throw await this.#createHttpError(response, options);
@@ -290,12 +333,12 @@ export class HttpClient {
       try {
         return await response.json();
       } catch (e) {
-        const error = new Error('响应不是有效的JSON格式');
-        this.#messageFunction?.error?.('返回的不是JSON格式');
+        const error = new Error("响应不是有效的JSON格式", { cause: e });
+        this.#messageFunction?.error?.("返回的不是JSON格式");
         throw error;
       }
     }
-    
+
     return response;
   }
 
@@ -304,10 +347,10 @@ export class HttpClient {
    */
   async #createHttpError(
     response: Response,
-    options: Required<CommonOptions>
+    options: Required<CommonOptions>,
   ): Promise<HttpError> {
-    let message = '请求失败';
-    let errorData;
+    let message = "请求失败";
+    let errorData: unknown;
 
     try {
       errorData = await response.json();
@@ -329,7 +372,7 @@ export class HttpClient {
     if (options.errorMessageShow) {
       this.#messageFunction?.error?.(`【${response.status}】${message}`);
     }
-    
+
     return error;
   }
 
@@ -339,15 +382,15 @@ export class HttpClient {
   async #handleTokenError<T>(
     _error: TokenError,
     config: FetchConfig,
-    options: Partial<CommonOptions & { responseIsJson: boolean }>
-  ): Promise<T> {
+    options: Partial<CommonOptions> & { responseIsJson: boolean },
+  ): Promise<T | Response> {
     const token = this.#getToken?.();
     if (!token) {
       return this.#panicOrRestart();
     }
 
-    const retryRequest = () => this.fetch<T>(config, { ...options, responseIsJson: true } as JsonOptions);
-    
+    const retryRequest = () => this.fetch<T>(config, options);
+
     const newToken = this.#getToken?.();
     if (newToken && newToken !== token) {
       return retryRequest();
@@ -355,33 +398,40 @@ export class HttpClient {
 
     const pendingRefresh = this.#pendingTokenRefresh.get(token);
     if (pendingRefresh) {
-      return new Promise((resolve) => {
-        pendingRefresh.push(() => {
-          resolve(retryRequest());
-        });
+      return new Promise((resolve, reject) => {
+        pendingRefresh.push([
+          () => {
+            resolve(retryRequest());
+          },
+          () => reject("由于token出错,取消请求"),
+        ]);
       });
     }
 
-    const pendingCallbacks: Array<() => void> = [];
+    const pendingCallbacks: Array<PendingCallback> = [];
     this.#pendingTokenRefresh.set(token, pendingCallbacks);
 
     try {
       const refreshResponse = await this.fetch(
         this.#refreshTokenConfig.fetchConfig,
-        {
-          ...this.#refreshTokenConfig.moreConfig,
-          responseIsJson: true
-        } as JsonOptions
+        this.#refreshTokenConfig.moreConfig,
       );
-      
+
       await this.#refreshTokenConfig.handleResponse(refreshResponse);
-      
-      pendingCallbacks.forEach((callback) => callback());
+
+      pendingCallbacks.forEach(([callback]) => {
+        callback();
+      });
       this.#pendingTokenRefresh.delete(token);
-      
+
       return retryRequest();
     } catch (e) {
-      this.#messageFunction?.error?.('登录失效');
+      console.error("刷新Token失败", e);
+      pendingCallbacks.forEach(([, cancel]) => {
+        cancel();
+      });
+      this.#pendingTokenRefresh.delete(token);
+      this.#messageFunction?.error?.("登录失效");
       return this.#panicOrRestart();
     }
   }
