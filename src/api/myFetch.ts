@@ -12,7 +12,7 @@ const client = new HttpClient({
       method: "POST",
     },
     moreConfig: {
-      responseIsJson: false,
+      responseIsJson: true,
     },
     handleResponse: (res: unknown) => {
       const token = res ?? None;
