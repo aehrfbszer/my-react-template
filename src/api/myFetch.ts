@@ -28,6 +28,7 @@ const client = new HttpClient({
     throw new Error("需要重新登录");
   },
   getToken: () => localStorage.getItem("token") || "",
+  maxRefreshRetries: 3,
 });
 
 export { client };

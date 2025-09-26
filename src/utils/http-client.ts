@@ -45,6 +45,8 @@ export class HttpClient {
   readonly #cache: RequestCache;
   #loadingManager: LoadingManager;
   #messageFunction: MessageFunction | null;
+  #retryCounts: Map<string, number>;
+  readonly #maxRefreshRetries: number;
   readonly #refreshTokenConfig: HttpClientConfig["refreshTokenConfig"];
   readonly #getToken?: () => string;
   readonly #globalHeaders: Record<string, string>;
@@ -60,6 +62,7 @@ export class HttpClient {
     loadingFunction = null,
     globalHeaders = {},
     panicOrRestart = defaultPanicHandler,
+    maxRefreshRetries = 1,
   }: HttpClientConfig) {
     this.#baseUrl = baseUrl;
     this.#timeout = timeout;
@@ -70,6 +73,8 @@ export class HttpClient {
     this.#globalHeaders = globalHeaders;
     this.#panicOrRestart = panicOrRestart;
     this.#cache = new RequestCache();
+    this.#retryCounts = new Map();
+    this.#maxRefreshRetries = maxRefreshRetries ?? 1;
   }
 
   /**
@@ -125,9 +130,11 @@ export class HttpClient {
   ): Promise<T | Response> {
     const finalOptions = this.#getDefaultOptions(options);
 
+    // 为每个请求生成唯一 key（用于追踪重试次数），同时用于缓存
+    const requestKey = this.#getCacheKey(config);
+
     if (finalOptions.cache && config.method === "GET") {
-      const cacheKey = this.#getCacheKey(config);
-      const cached = this.#cache.get<T>(cacheKey);
+      const cached = this.#cache.get<T>(requestKey);
       if (cached) return cached;
     }
 
@@ -140,9 +147,11 @@ export class HttpClient {
         config.method === "GET" &&
         finalOptions.responseIsJson
       ) {
-        const cacheKey = this.#getCacheKey(config);
-        this.#cache.set(cacheKey, data, finalOptions.cacheTTL);
+        this.#cache.set(requestKey, data, finalOptions.cacheTTL);
       }
+
+      // 请求成功，清理该请求的重试计数（如果有）
+      this.#retryCounts.delete(requestKey);
 
       return data;
     } catch (error) {
@@ -389,6 +398,17 @@ export class HttpClient {
       return this.#panicOrRestart();
     }
 
+    // 使用请求的唯一键追踪重试次数，避免无限刷新
+    const requestKey = this.#getCacheKey(config);
+    const currentRetries = this.#retryCounts.get(requestKey) ?? 0;
+    if (currentRetries >= this.#maxRefreshRetries) {
+      // 超过重试次数，不再刷新，触发重启或登录流程
+      this.#messageFunction?.error?.("登录已失效（超过最大重试次数）");
+      return this.#panicOrRestart();
+    }
+
+    this.#retryCounts.set(requestKey, currentRetries + 1);
+
     const retryRequest = () => this.fetch<T>(config, options);
 
     const newToken = this.#getToken?.();
@@ -431,6 +451,8 @@ export class HttpClient {
         cancel();
       });
       this.#pendingTokenRefresh.delete(token);
+      // 刷新过程失败，清除计数并触发 panic
+      this.#retryCounts.delete(requestKey);
       this.#messageFunction?.error?.("登录失效");
       return this.#panicOrRestart();
     }

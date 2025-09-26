@@ -55,6 +55,11 @@ export interface HttpClientConfig {
   loadingFunction?: LoadingFunction | null;
   globalHeaders?: Record<string, string>;
   panicOrRestart?: () => never;
+  /**
+   * 最大的 refresh -> retry 次数，超过将不会再次刷新并会触发 panicOrRestart
+   * 默认为 1（每个请求最多在 refresh 后重试一次）
+   */
+  maxRefreshRetries?: number;
 }
 
 /** 基础响应结构 */
