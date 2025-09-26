@@ -30,8 +30,7 @@ const client = new HttpClient({
   getToken: () => localStorage.getItem("token") || "",
 });
 
-const myFetch = client.fetch.bind(client);
-const setMessageFunction = client.setMessageFunction.bind(client);
-const setLoadingFunction = client.setLoadingFunction.bind(client);
-
-export { myFetch, setMessageFunction, setLoadingFunction };
+export { client };
+export const myFetch = client.fetch.bind(client);
+export const setMessageFunction = client.setMessageFunction.bind(client);
+export const setLoadingFunction = client.setLoadingFunction.bind(client);
