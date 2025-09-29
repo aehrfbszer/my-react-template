@@ -1,5 +1,5 @@
 import type { HttpError } from "./errors";
-import type { FetchConfig, HttpClientConfig } from "./types";
+import type { FetchConfig } from "./types";
 
 /**
  * 401未授权处理器接口
@@ -34,13 +34,20 @@ export interface RefreshTokenConfig {
   getOldToken: () => string | null;
   /** 获取新token的函数 */
   getNewToken: () => string | null;
-  /** 保存新token的函数 */
-  saveToken: (token: string) => void;
   /** 刷新token的请求配置 */
-  refreshConfig: NonNullable<HttpClientConfig["refreshTokenConfig"]>;
+  refreshConfig: {
+    fetchConfig: Omit<FetchConfig, "data" | "params">; // 刷新请求的配置，data和params通常不需要
+    responseIsJson: boolean; // 是否将响应解析为JSON
+    handleResponse: (res: unknown) => void | Promise<void>;
+  };
   /** 最大重试次数 */
   maxRetries?: number;
 }
+
+type PendingAction = [
+  doRetry: () => void,
+  doCancel: (reason?: unknown) => void,
+];
 
 /**
  * Token 刷新处理器
@@ -50,17 +57,11 @@ export interface RefreshTokenConfig {
 export const refreshTokenHandler = ({
   getOldToken,
   getNewToken,
-  saveToken,
   refreshConfig,
   maxRetries = 1,
 }: RefreshTokenConfig): UnauthorizedHandler => {
   // 记录正在刷新的token相关的回调
-  const pendingRefresh = new Map<
-    string,
-    Array<
-      [resolve: (value: unknown) => void, reject: (reason?: unknown) => void]
-    >
-  >();
+  const pendingRefresh = new Map<string, Array<PendingAction>>();
   // 记录重试次数
   const retryCounts = new Map<string, number>();
 
@@ -96,27 +97,24 @@ export const refreshTokenHandler = ({
     const pending = pendingRefresh.get(pendingKey);
     if (pending) {
       return new Promise<T>((resolve, reject) => {
-        pending.push([resolve as (value: unknown) => void, reject]);
-      }).then(() => retry());
+        pending.push([() => resolve(retry()), reject]);
+      });
     }
 
     // 开始刷新token
-    const callbacks: Array<
-      [resolve: (value: unknown) => void, reject: (reason?: unknown) => void]
-    > = [];
+    const callbacks: Array<PendingAction> = [];
     pendingRefresh.set(pendingKey, callbacks);
 
     try {
+      const { fetchConfig } = refreshConfig;
+      const { url, ...rest } = fetchConfig;
       const response = await fetch(
-        new URL(
-          refreshConfig.fetchConfig.url,
-          window.location.origin,
-        ).toString(),
+        new URL(url, window.location.origin).toString(),
         {
-          ...refreshConfig.fetchConfig,
+          ...rest,
           headers: {
-            ...refreshConfig.fetchConfig.headers,
             Authorization: `Bearer ${oldToken}`,
+            ...rest.headers,
           },
         },
       );
@@ -125,24 +123,22 @@ export const refreshTokenHandler = ({
         throw new Error("刷新token失败");
       }
 
-      const data = await response.json();
-      await refreshConfig.handleResponse(data);
-
-      // 再次获取新token（因为handleResponse可能已经更新了token）
-      const latestToken = getNewToken();
-      if (latestToken && latestToken !== oldToken) {
-        saveToken(latestToken);
+      if (refreshConfig.responseIsJson) {
+        const data = await response.json();
+        await refreshConfig.handleResponse(data);
+      } else {
+        await refreshConfig.handleResponse(response);
       }
 
       // 通知其他等待的请求
-      callbacks.forEach(([resolve]) => {
-        resolve(undefined);
+      callbacks.forEach(([doRetry]) => {
+        doRetry();
       });
       return retry();
     } catch (e) {
       // 刷新失败，通知其他等待的请求
-      callbacks.forEach(([, reject]) => {
-        reject(e);
+      callbacks.forEach(([, doCancel]) => {
+        doCancel(e);
       });
       retryCounts.delete(retryKey);
       throw e;

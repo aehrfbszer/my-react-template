@@ -1,6 +1,6 @@
 import type { AuthHeadersHandler } from "./auth-handlers";
 import { RequestCache } from "./cache";
-import { HttpError, TokenError } from "./errors";
+import { HttpError } from "./errors";
 import { type LoadingFunction, LoadingManager } from "./loading";
 import type {
   CommonOptions,
@@ -29,13 +29,22 @@ const defaultPanicHandler = () => {
   throw new Error("无法处理，刷新页面");
 };
 
+const NoneSymbol = Symbol("none");
+
+const isNone = (val: unknown): val is null | undefined => {
+  return (val ?? NoneSymbol) === NoneSymbol;
+};
+
 const extractErrorMessage = (errorData: unknown): string | undefined => {
-  if (typeof errorData === "object" && errorData) {
-    const obj = errorData as Record<string, unknown>;
-    const text = obj.errorMessage || obj.message || obj.msg || obj.error;
-    if (text) {
-      return typeof text === "string" ? text : JSON.stringify(text);
+  if (!isNone(errorData)) {
+    if (typeof errorData === "object") {
+      const obj = errorData as Record<string, unknown>;
+      const text = obj.errorMessage || obj.message || obj.msg || obj.error;
+      if (text) {
+        return typeof text === "string" ? text : JSON.stringify(text);
+      }
     }
+    return String(errorData);
   }
   return undefined;
 };
@@ -160,14 +169,19 @@ export class HttpClient {
       return data;
     } catch (error) {
       // 处理401错误
-      if (error instanceof HttpError && error.status === 401) {
-        if (this.#onUnauthorized) {
-          return this.#onUnauthorized<T | Response>(error, config, () =>
-            this.fetch<T>(config, finalOptions),
-          );
+      if (error instanceof HttpError) {
+        if (error.status === 401) {
+          if (this.#onUnauthorized) {
+            return this.#onUnauthorized<T | Response>(error, config, () =>
+              this.fetch<T>(config, finalOptions),
+            );
+          }
+          // 默认处理
+          return this.#panicOrRestart();
+        } else {
+          // 非401错误，直接抛出
+          throw error;
         }
-        // 默认处理
-        return this.#panicOrRestart();
       }
 
       // 处理可能的 AbortError（请求被取消）
@@ -405,17 +419,13 @@ export class HttpClient {
       // 忽略JSON解析错误
     }
 
-    if (response.status === 401) {
-      throw new TokenError(message, errorData);
-    }
-
     const error = new HttpError(response.status, message, errorData);
     if (options.errorMessageShow) {
-      this.#messageFunction?.error?.(`【${response.status}】${message}`);
+      if (response.status !== 401 || !this.#onUnauthorized) {
+        this.#messageFunction?.error?.(`【${response.status}】${message}`);
+      }
     }
 
     return error;
   }
-
-  // #handleTokenError 已废弃，401 逻辑交由 onUnauthorized 处理
 }
