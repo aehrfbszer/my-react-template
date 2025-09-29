@@ -183,6 +183,22 @@ const Base64 = () => {
       <Button
         onClick={() => {
           myFetch({
+            url: "/task/111/",
+            method: "POST",
+            data: {
+              name: "cc",
+              age: 99,
+              email: "f9weuir@gmail.com",
+            },
+            signal: AbortSignal.timeout(1),
+          });
+        }}
+      >
+        超时取消按钮
+      </Button>
+      <Button
+        onClick={() => {
+          myFetch({
             url: "/set-cookie",
             method: "POST",
           }).then((res) => {

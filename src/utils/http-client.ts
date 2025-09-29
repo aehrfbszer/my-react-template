@@ -1,5 +1,5 @@
 import { RequestCache } from "./cache";
-import { HttpError, NetworkError, TokenError } from "./errors";
+import { HttpError, TokenError } from "./errors";
 import { type LoadingFunction, LoadingManager } from "./loading";
 import type {
   CommonOptions,
@@ -49,7 +49,7 @@ export class HttpClient {
   readonly #maxRefreshRetries: number;
   readonly #refreshTokenConfig: HttpClientConfig["refreshTokenConfig"];
   readonly #getToken?: () => string;
-  readonly #globalHeaders: Record<string, string>;
+  readonly #globalFetchConfig: RequestInit;
   readonly #panicOrRestart: () => never;
   readonly #pendingTokenRefresh = new Map<string, Array<PendingCallback>>();
 
@@ -60,7 +60,7 @@ export class HttpClient {
     getToken,
     messageFunction = null,
     loadingFunction = null,
-    globalHeaders = {},
+    globalFetchConfig = {},
     panicOrRestart = defaultPanicHandler,
     maxRefreshRetries = 1,
   }: HttpClientConfig) {
@@ -70,7 +70,7 @@ export class HttpClient {
     this.#getToken = getToken;
     this.#messageFunction = messageFunction;
     this.#loadingManager = new LoadingManager(loadingFunction);
-    this.#globalHeaders = globalHeaders;
+    this.#globalFetchConfig = globalFetchConfig;
     this.#panicOrRestart = panicOrRestart;
     this.#cache = new RequestCache();
     this.#retryCounts = new Map();
@@ -155,10 +155,23 @@ export class HttpClient {
 
       return data;
     } catch (error) {
+      // 处理令牌错误
       if (error instanceof TokenError) {
         return this.#handleTokenError<T>(error, config, finalOptions);
       }
-      throw error;
+
+      // 处理可能的 AbortError（请求被取消）
+      if (error instanceof DOMException && error.name === "AbortError") {
+        this.#messageFunction?.error?.("请求被取消");
+        throw error;
+      }
+
+      // 处理其它类型的错误
+      const finalError =
+        error instanceof Error ? error : new Error(String(error));
+      const msg = finalError.message || "请求发生错误";
+      this.#messageFunction?.error?.(msg);
+      throw finalError;
     }
   }
 
@@ -207,19 +220,23 @@ export class HttpClient {
         this.#loadingManager.start();
       }
 
-      const fetchPromise = fetch(
-        this.#buildUrl(config),
-        this.#buildFetchConfig(config, options, signal),
-      );
+      const { promise, resolve, reject } = Promise.withResolvers<Response>();
 
-      const timeoutPromise = new Promise<Response>((_, reject) => {
-        setTimeout(() => {
-          controller.abort("请求超时");
-          reject(new NetworkError("请求超时"));
-        }, this.#timeout);
-      });
+      globalThis
+        .fetch(
+          this.#buildUrl(config),
+          this.#buildFetchConfig(config, options, signal),
+        )
+        .then(resolve)
+        .catch(reject);
 
-      return await Promise.race([fetchPromise, timeoutPromise]);
+      setTimeout(() => {
+        // abort时传入超时信息，会将上面的globalThis.fetch的状态变为aborted，并且reason会被捕获到reject中
+        // 这里在调用abort时传入一个字符串作为reason，外面被捕获到的error是这个字符串，并不是一个Error对象
+        controller.abort(`请求超时：超过${this.#timeout}ms`);
+      }, this.#timeout);
+
+      return await promise;
     } finally {
       if (options.loading) {
         this.#loadingManager.finish();
@@ -276,7 +293,9 @@ export class HttpClient {
     // ++++++++++++++++++++++++++++++++++++++++++++++++++默认逻辑结束
 
     // ++++++++++++++++++++++++++++++++++++++++++++++++++这一部分是用户自定义的全局逻辑，应该覆盖默认逻辑
-    for (const [key, value] of Object.entries(this.#globalHeaders)) {
+    for (const [key, value] of Object.entries(
+      this.#globalFetchConfig.headers ?? {},
+    )) {
       headers.set(key, value);
     }
     // ++++++++++++++++++++++++++++++++++++++++++++++++++用户自定义的全局逻辑结束
@@ -302,11 +321,12 @@ export class HttpClient {
     // +++++++++++++++++++++++++++++++++++++++++++++++++++用户每次请求时传入的配配置之外还附加的额外选项结束
 
     return {
+      ...this.#globalFetchConfig,
       ...rest,
       method,
       headers,
       body: this.#getRequestBody(data),
-      signal: userSignal ?? signal,
+      signal: userSignal ?? this.#globalFetchConfig.signal ?? signal,
     };
   }
 

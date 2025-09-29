@@ -53,7 +53,7 @@ export interface HttpClientConfig {
     error?: (msg: string) => void;
   } | null;
   loadingFunction?: LoadingFunction | null;
-  globalHeaders?: Record<string, string>;
+  globalFetchConfig?: RequestInit;
   panicOrRestart?: () => never;
   /**
    * 最大的 refresh -> retry 次数，超过将不会再次刷新并会触发 panicOrRestart
