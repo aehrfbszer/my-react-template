@@ -1,3 +1,4 @@
+import type { AuthHeadersHandler } from "./auth-handlers";
 import { RequestCache } from "./cache";
 import { HttpError, TokenError } from "./errors";
 import { type LoadingFunction, LoadingManager } from "./loading";
@@ -8,6 +9,12 @@ import type {
   JsonOptions,
   RawOptions,
 } from "./types";
+
+type UnauthorizedHandler = <T>(
+  error: HttpError,
+  config: FetchConfig,
+  retry: () => Promise<T>,
+) => Promise<T>;
 
 type MessageFunction = {
   success?: (msg: string) => void;
@@ -33,8 +40,6 @@ const extractErrorMessage = (errorData: unknown): string | undefined => {
   return undefined;
 };
 
-type PendingCallback = [retry: () => void, cancel: () => void];
-
 /**
  * HTTP客户端实现
  * 提供统一的请求处理、错误处理、缓存、认证等功能
@@ -46,35 +51,34 @@ export class HttpClient {
   #loadingManager: LoadingManager;
   #messageFunction: MessageFunction | null;
   #retryCounts: Map<string, number>;
-  readonly #maxRefreshRetries: number;
-  readonly #refreshTokenConfig: HttpClientConfig["refreshTokenConfig"];
-  readonly #getToken?: () => string;
+  readonly #getAuthHeaders?: AuthHeadersHandler;
+  readonly #onUnauthorized?: UnauthorizedHandler;
   readonly #globalFetchConfig: RequestInit;
   readonly #panicOrRestart: () => never;
-  readonly #pendingTokenRefresh = new Map<string, Array<PendingCallback>>();
 
   constructor({
     baseUrl,
     timeout = 60_000,
-    refreshTokenConfig,
-    getToken,
+    getAuthHeaders,
+    onUnauthorized,
     messageFunction = null,
     loadingFunction = null,
     globalFetchConfig = {},
     panicOrRestart = defaultPanicHandler,
-    maxRefreshRetries = 1,
-  }: HttpClientConfig) {
+  }: HttpClientConfig & {
+    getAuthHeaders?: AuthHeadersHandler;
+    onUnauthorized?: UnauthorizedHandler;
+  }) {
     this.#baseUrl = baseUrl;
     this.#timeout = timeout;
-    this.#refreshTokenConfig = refreshTokenConfig;
-    this.#getToken = getToken;
+    this.#getAuthHeaders = getAuthHeaders;
+    this.#onUnauthorized = onUnauthorized;
     this.#messageFunction = messageFunction;
     this.#loadingManager = new LoadingManager(loadingFunction);
     this.#globalFetchConfig = globalFetchConfig;
     this.#panicOrRestart = panicOrRestart;
     this.#cache = new RequestCache();
     this.#retryCounts = new Map();
-    this.#maxRefreshRetries = maxRefreshRetries ?? 1;
   }
 
   /**
@@ -155,9 +159,15 @@ export class HttpClient {
 
       return data;
     } catch (error) {
-      // 处理令牌错误
-      if (error instanceof TokenError) {
-        return this.#handleTokenError<T>(error, config, finalOptions);
+      // 处理401错误
+      if (error instanceof HttpError && error.status === 401) {
+        if (this.#onUnauthorized) {
+          return this.#onUnauthorized<T | Response>(error, config, () =>
+            this.fetch<T>(config, finalOptions),
+          );
+        }
+        // 默认处理
+        return this.#panicOrRestart();
       }
 
       // 处理可能的 AbortError（请求被取消）
@@ -275,10 +285,12 @@ export class HttpClient {
 
     const headers = new Headers();
 
-    // ++++++++++++++++++++++++++++++++++++++++++++++++++这一部分是默认逻辑
-    const token = this.#getToken?.();
-    if (token && !options.withoutToken && !headers.has("Authorization")) {
-      headers.set("Authorization", `Bearer ${token}`);
+    // +++++++++++++++ token/认证相关逻辑抽离 +++++++++++++++
+    if (this.#getAuthHeaders && !options.withoutToken) {
+      const authHeaders = this.#getAuthHeaders(config);
+      for (const [key, value] of Object.entries(authHeaders)) {
+        headers.set(key, value);
+      }
     }
 
     if (data && !headers.has("Content-Type")) {
@@ -290,7 +302,7 @@ export class HttpClient {
         headers.set("Content-Type", "application/json");
       }
     }
-    // ++++++++++++++++++++++++++++++++++++++++++++++++++默认逻辑结束
+    // +++++++++++++++ token/认证相关逻辑抽离结束 +++++++++++++++
 
     // ++++++++++++++++++++++++++++++++++++++++++++++++++这一部分是用户自定义的全局逻辑，应该覆盖默认逻辑
     for (const [key, value] of Object.entries(
@@ -405,76 +417,5 @@ export class HttpClient {
     return error;
   }
 
-  /**
-   * 处理Token错误
-   */
-  async #handleTokenError<T>(
-    _error: TokenError,
-    config: FetchConfig,
-    options: Partial<CommonOptions> & { responseIsJson: boolean },
-  ): Promise<T | Response> {
-    const token = this.#getToken?.();
-    if (!token) {
-      return this.#panicOrRestart();
-    }
-
-    // 使用请求的唯一键追踪重试次数，避免无限刷新
-    const requestKey = this.#getCacheKey(config);
-    const currentRetries = this.#retryCounts.get(requestKey) ?? 0;
-    if (currentRetries >= this.#maxRefreshRetries) {
-      // 超过重试次数，不再刷新，触发重启或登录流程
-      this.#messageFunction?.error?.("登录已失效（超过最大重试次数）");
-      return this.#panicOrRestart();
-    }
-
-    this.#retryCounts.set(requestKey, currentRetries + 1);
-
-    const retryRequest = () => this.fetch<T>(config, options);
-
-    const newToken = this.#getToken?.();
-    if (newToken && newToken !== token) {
-      return retryRequest();
-    }
-
-    const pendingRefresh = this.#pendingTokenRefresh.get(token);
-    if (pendingRefresh) {
-      return new Promise((resolve, reject) => {
-        pendingRefresh.push([
-          () => {
-            resolve(retryRequest());
-          },
-          () => reject("由于token出错,取消请求"),
-        ]);
-      });
-    }
-
-    const pendingCallbacks: Array<PendingCallback> = [];
-    this.#pendingTokenRefresh.set(token, pendingCallbacks);
-
-    try {
-      const refreshResponse = await this.fetch(
-        this.#refreshTokenConfig.fetchConfig,
-        this.#refreshTokenConfig.moreConfig,
-      );
-
-      await this.#refreshTokenConfig.handleResponse(refreshResponse);
-
-      pendingCallbacks.forEach(([callback]) => {
-        callback();
-      });
-      this.#pendingTokenRefresh.delete(token);
-
-      return retryRequest();
-    } catch (e) {
-      console.error("刷新Token失败", e);
-      pendingCallbacks.forEach(([, cancel]) => {
-        cancel();
-      });
-      this.#pendingTokenRefresh.delete(token);
-      // 刷新过程失败，清除计数并触发 panic
-      this.#retryCounts.delete(requestKey);
-      this.#messageFunction?.error?.("登录失效");
-      return this.#panicOrRestart();
-    }
-  }
+  // #handleTokenError 已废弃，401 逻辑交由 onUnauthorized 处理
 }

@@ -42,7 +42,7 @@ export interface RawOptions extends Partial<CommonOptions> {
 export interface HttpClientConfig {
   baseUrl: string;
   timeout?: number;
-  refreshTokenConfig: {
+  refreshTokenConfig?: {
     fetchConfig: FetchConfig;
     moreConfig: Partial<CommonOptions> & { responseIsJson: boolean };
     handleResponse: (res: unknown) => void | Promise<void>;
