@@ -11,10 +11,3 @@ export class HttpError extends Error {
     return this.#status;
   }
 }
-
-export class TokenError extends Error {
-  constructor(message: string, originalError?: unknown) {
-    super(message, { cause: originalError });
-    this.name = "TokenError";
-  }
-}
