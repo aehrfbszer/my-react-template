@@ -51,9 +51,10 @@ export interface CommonOptions {
    */
   withoutGlobalDynamicHeaders: boolean;
 
-  /** 是否启用缓存，慎用，绝大多数情况是不需要开启的
+  /** 是否启用缓存，慎用，绝大多数情况是不需要开启的；
    * 默认【false】
-   * 仅支持GET请求
+   * 仅支持GET请求；
+   * 不能设置responseIsJson为false，否则启用cache也无效；
    * 如果响应头中包含 `Cache-Control: no-cache` 或 `Cache-Control: no-store` 则不同样会缓存
    */
   cache: boolean;
