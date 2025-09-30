@@ -1,14 +1,5 @@
 import type { HttpError } from "./errors";
-import type { FetchConfig } from "./types";
-
-/**
- * 401未授权处理器接口
- */
-export type UnauthorizedHandler = <T>(
-  error: HttpError,
-  config: FetchConfig,
-  retry: () => Promise<T>,
-) => Promise<T>;
+import type { FetchConfig, UnauthorizedHandler } from "./types";
 
 /**
  * 重定向到登录页的处理器

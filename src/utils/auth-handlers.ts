@@ -1,12 +1,4 @@
-import type { FetchConfig } from "./types";
-
-/**
- * 认证处理器接口
- * 用于生成请求认证相关的headers
- */
-export type AuthHeadersHandler = (
-  config: FetchConfig,
-) => Record<string, string>;
+import type { AuthHeadersHandler, FetchConfig } from "./types";
 
 /**
  * Bearer Token认证处理器

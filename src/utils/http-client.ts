@@ -1,25 +1,16 @@
-import type { AuthHeadersHandler } from "./auth-handlers";
 import { RequestCache } from "./cache";
 import { HttpError } from "./errors";
 import { type LoadingFunction, LoadingManager } from "./loading";
 import type {
+  AuthHeadersHandler,
   CommonOptions,
   FetchConfig,
   HttpClientConfig,
   JsonOptions,
+  MessageFunction,
   RawOptions,
+  UnauthorizedHandler,
 } from "./types";
-
-type UnauthorizedHandler = <T>(
-  error: HttpError,
-  config: FetchConfig,
-  retry: () => Promise<T>,
-) => Promise<T>;
-
-type MessageFunction = {
-  success?: (msg: string) => void;
-  error?: (msg: string) => void;
-};
 
 const defaultPanicHandler = () => {
   localStorage.clear();
@@ -59,7 +50,6 @@ export class HttpClient {
   readonly #cache: RequestCache;
   #loadingManager: LoadingManager;
   #messageFunction: MessageFunction | null;
-  #retryCounts: Map<string, number>;
   readonly #getAuthHeaders?: AuthHeadersHandler;
   readonly #onUnauthorized?: UnauthorizedHandler;
   readonly #globalFetchConfig: RequestInit;
@@ -74,10 +64,10 @@ export class HttpClient {
     loadingFunction = null,
     globalFetchConfig = {},
     panicOrRestart = defaultPanicHandler,
-  }: HttpClientConfig & {
-    getAuthHeaders?: AuthHeadersHandler;
-    onUnauthorized?: UnauthorizedHandler;
-  }) {
+  }: HttpClientConfig) {
+    if (!baseUrl) {
+      throw new Error("必须提供 baseUrl");
+    }
     this.#baseUrl = baseUrl;
     this.#timeout = timeout;
     this.#getAuthHeaders = getAuthHeaders;
@@ -87,7 +77,6 @@ export class HttpClient {
     this.#globalFetchConfig = globalFetchConfig;
     this.#panicOrRestart = panicOrRestart;
     this.#cache = new RequestCache();
-    this.#retryCounts = new Map();
   }
 
   /**
@@ -155,16 +144,18 @@ export class HttpClient {
       const response = await this.#doFetch(config, finalOptions);
       const data = await this.#handleResponse<T>(response, finalOptions);
 
+      const dontCache = ["no-cache", "no-store"].includes(
+        response.headers.get("Cache-Control") ?? "",
+      );
+
       if (
         finalOptions.cache &&
         config.method === "GET" &&
-        finalOptions.responseIsJson
+        finalOptions.responseIsJson &&
+        !dontCache
       ) {
         this.#cache.set(requestKey, data, finalOptions.cacheTTL);
       }
-
-      // 请求成功，清理该请求的重试计数（如果有）
-      this.#retryCounts.delete(requestKey);
 
       return data;
     } catch (error) {
