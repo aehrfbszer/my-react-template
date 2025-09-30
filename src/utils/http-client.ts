@@ -2,8 +2,8 @@ import { RequestCache } from "./cache";
 import { HttpError } from "./errors";
 import { type LoadingFunction, LoadingManager } from "./loading";
 import type {
-  AuthHeadersHandler,
   CommonOptions,
+  DynamicHeadersHandler,
   FetchConfig,
   HttpClientConfig,
   JsonOptions,
@@ -50,7 +50,7 @@ export class HttpClient {
   readonly #cache: RequestCache;
   #loadingManager: LoadingManager;
   #messageFunction: MessageFunction | null;
-  readonly #getAuthHeaders?: AuthHeadersHandler;
+  readonly #getDynamicHeaders?: DynamicHeadersHandler;
   readonly #onUnauthorized?: UnauthorizedHandler;
   readonly #globalFetchConfig: RequestInit;
   readonly #panicOrRestart: () => never;
@@ -58,7 +58,7 @@ export class HttpClient {
   constructor({
     baseUrl,
     timeout = 60_000,
-    getAuthHeaders,
+    getDynamicHeaders,
     onUnauthorized,
     messageFunction = null,
     loadingFunction = null,
@@ -70,7 +70,7 @@ export class HttpClient {
     }
     this.#baseUrl = baseUrl;
     this.#timeout = timeout;
-    this.#getAuthHeaders = getAuthHeaders;
+    this.#getDynamicHeaders = getDynamicHeaders;
     this.#onUnauthorized = onUnauthorized;
     this.#messageFunction = messageFunction;
     this.#loadingManager = new LoadingManager(loadingFunction);
@@ -200,12 +200,14 @@ export class HttpClient {
       loading: true,
       errorMessageShow: true,
       useApiErrorInfo: true,
-      withoutToken: false,
+      withoutGlobalDynamicHeaders: false,
       responseIsJson: true,
       cache: false,
       cacheTTL: 5 * 60 * 1000,
       contentType: "",
       moreHeaders: null,
+      clearHeaders: null,
+      clearAllHeaders: false,
       ...options,
     };
   }
@@ -288,34 +290,40 @@ export class HttpClient {
       ...rest
     } = config;
 
-    const headers = new Headers();
+    let headers = new Headers(this.#globalFetchConfig.headers);
 
-    // +++++++++++++++ token/认证相关逻辑抽离 +++++++++++++++
-    if (this.#getAuthHeaders && !options.withoutToken) {
-      const authHeaders = this.#getAuthHeaders(config);
-      for (const [key, value] of Object.entries(authHeaders)) {
-        headers.set(key, value);
-      }
-    }
+    // +++++++++++++++ 根据data的类型自动设置Content-Type +++++++++++++++
 
     if (data && !headers.has("Content-Type")) {
       if (data instanceof FormData || data instanceof URLSearchParams) {
         // 浏览器会自动设置正确的Content-Type
+        // FormData会自动设置为 multipart/form-data，并带上正确的 boundary
+        // URLSearchParams会自动设置为 application/x-www-form-urlencoded
       } else if (data instanceof ReadableStream) {
         headers.set("Content-Type", "application/octet-stream");
       } else {
         headers.set("Content-Type", "application/json");
       }
     }
-    // +++++++++++++++ token/认证相关逻辑抽离结束 +++++++++++++++
+    // +++++++++++++++ 根据data的类型自动设置Content-Type结束 +++++++++++++++
 
     // ++++++++++++++++++++++++++++++++++++++++++++++++++这一部分是用户自定义的全局逻辑，应该覆盖默认逻辑
-    for (const [key, value] of Object.entries(
-      this.#globalFetchConfig.headers ?? {},
-    )) {
-      headers.set(key, value);
+    if (this.#getDynamicHeaders && !options.withoutGlobalDynamicHeaders) {
+      const dynamicHeaders = this.#getDynamicHeaders(config);
+      for (const [key, value] of Object.entries(dynamicHeaders)) {
+        headers.set(key, value);
+      }
     }
     // ++++++++++++++++++++++++++++++++++++++++++++++++++用户自定义的全局逻辑结束
+
+    if (options.clearHeaders) {
+      for (const key of options.clearHeaders) {
+        headers.delete(key);
+      }
+    }
+    if (options.clearAllHeaders) {
+      headers = new Headers();
+    }
 
     // ++++++++++++++++++++++++++++++++++++++++++++++++++这一部分是每次请求时传入的配置，应该覆盖前面所有逻辑
     if (useHeaders) {
@@ -326,6 +334,7 @@ export class HttpClient {
     // ++++++++++++++++++++++++++++++++++++++++++++++++++每次请求时传入的配置结束
 
     // +++++++++++++++++++++++++++++++++++++++++++++++++++这一部分是用户每次请求时传入的配置之外还附加的额外选项，应该覆盖前面所有逻辑
+
     if (options.contentType) {
       headers.set("Content-Type", options.contentType);
     }

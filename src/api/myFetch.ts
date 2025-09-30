@@ -31,7 +31,7 @@ const client = new HttpClient({
   timeout: 60_000,
 
   // 组合使用Bearer Token和API Key认证
-  getAuthHeaders: bearerTokenHandler(getToken),
+  getDynamicHeaders: bearerTokenHandler(getToken),
 
   onUnauthorized: refreshTokenHandler({
     getOldToken: getToken,

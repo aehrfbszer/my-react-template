@@ -1,4 +1,4 @@
-import type { AuthHeadersHandler, FetchConfig } from "./types";
+import type { DynamicHeadersHandler, FetchConfig } from "./types";
 
 /**
  * Bearer Token认证处理器
@@ -7,7 +7,7 @@ import type { AuthHeadersHandler, FetchConfig } from "./types";
  */
 export const bearerTokenHandler = (
   getToken: () => string | undefined | null,
-): AuthHeadersHandler => {
+): DynamicHeadersHandler => {
   return () => {
     const token = getToken();
     return token
@@ -23,7 +23,7 @@ export const bearerTokenHandler = (
  */
 export const basicAuthHandler = (
   getCredentials: () => { username: string; password: string },
-): AuthHeadersHandler => {
+): DynamicHeadersHandler => {
   return () => {
     const { username, password } = getCredentials();
     const credentials = btoa(`${username}:${password}`);
@@ -40,7 +40,7 @@ export const basicAuthHandler = (
 export const apiKeyHandler = (
   getApiKey: () => string,
   headerName = "X-API-Key",
-): AuthHeadersHandler => {
+): DynamicHeadersHandler => {
   return () => ({ [headerName]: getApiKey() });
 };
 
@@ -51,7 +51,7 @@ export const apiKeyHandler = (
  */
 export const customHandler = (
   handler: (config: FetchConfig) => Record<string, string>,
-): AuthHeadersHandler => {
+): DynamicHeadersHandler => {
   return handler;
 };
 

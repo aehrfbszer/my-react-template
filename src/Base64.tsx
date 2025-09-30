@@ -167,15 +167,24 @@ const Base64 = () => {
       </Form>
       <Button
         onClick={() => {
-          myFetch({
-            url: "/task/nao%F0%9F%8C%99fno%F0%9F%8C%8F/",
-            method: "POST",
-            data: {
-              name: "aa",
-              age: 77,
-              email: "dfsdqw@qq.com",
+          myFetch(
+            {
+              url: "/task/nao%F0%9F%8C%99fno%F0%9F%8C%8F/",
+              method: "POST",
+              data: {
+                name: "aa",
+                age: 77,
+                email: "dfsdqw@qq.com",
+              },
             },
-          });
+            {
+              responseIsJson: false,
+            },
+          )
+            .then((res) => res.text())
+            .then((data) => {
+              console.log("任务创建结果", data);
+            });
         }}
       >
         发送请求

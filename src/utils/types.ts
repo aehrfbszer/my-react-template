@@ -5,30 +5,59 @@ import type { LoadingFunction } from "./loading";
 export interface FetchConfig extends RequestInit {
   url: string;
   method: "GET" | "POST" | "PUT" | "DELETE" | "PATCH" | "HEAD" | "OPTIONS";
-  data?: unknown;
+  data?: FormData | URLSearchParams | ReadableStream | object | unknown;
   params?: Record<string, string>;
 }
 
-/** 通用请求选项 */
+/**
+ * 通用请求选项
+ * 会覆盖全局配置（包括静态全局配置和动态全局配置）
+ */
 export interface CommonOptions {
   /** 是否开启loading层效果，默认【true】 */
   loading: boolean;
+
   /** 是否展示错误信息，默认【true】 */
   errorMessageShow: boolean;
+
   /** 是否使用API错误信息，默认【true】 */
   useApiErrorInfo: boolean;
-  /** 自定义Content-Type */
+
+  /** 自定义Content-Type，默认【""】 */
   contentType: string;
-  /** 额外的请求头 */
+
+  /** 额外的请求头
+   * 默认【null】
+   * 如果和上面的 `contentType` 有冲突，则以 `moreHeaders` 为准
+   */
   moreHeaders: Record<string, string> | null;
-  /** 是否不需要token，默认【flase】 */
-  withoutToken: boolean;
+
+  /** 清除某些全局headers
+   * 默认【null】
+   * 例如：全局静态/动态请求头设置了Authorization，如果该接口不需要Authorization，可以在这里配置 `["Authorization"]`
+   */
+  clearHeaders: string[] | null;
+
+  /** 清除所有全局headers
+   * 默认【false】
+   * 例如：全局静态/动态请求头设置了Authorization，如果该接口不需要Authorization，可以开启此选项
+   */
+  clearAllHeaders?: boolean;
+
+  /**
+   * 不携带全局动态请求头
+   * 【默认：false】
+   * 例如：全局动态请求头设置了Authorization，如果该接口不需要Authorization，可以开启此选项
+   */
+  withoutGlobalDynamicHeaders: boolean;
+
   /** 是否启用缓存，慎用，绝大多数情况是不需要开启的
    * 默认【false】
    * 仅支持GET请求
    * 如果响应头中包含 `Cache-Control: no-cache` 或 `Cache-Control: no-store` 则不同样会缓存
    */
   cache: boolean;
+
   /** 缓存时间（毫秒）
    * 默认【5分钟】
    */
@@ -46,10 +75,10 @@ export interface RawOptions extends Partial<CommonOptions> {
 }
 
 /**
- * 认证处理器接口
- * 用于生成请求认证相关的headers
+ * 某些全局headers需要动态生成/获取
+ * 例如：用于生成请求认证相关的headers
  */
-export type AuthHeadersHandler = (
+export type DynamicHeadersHandler = (
   config: FetchConfig,
 ) => Record<string, string>;
 
@@ -72,7 +101,7 @@ export interface HttpClientConfig {
   loadingFunction?: LoadingFunction | null;
   globalFetchConfig?: RequestInit;
   panicOrRestart?: () => never;
-  getAuthHeaders?: AuthHeadersHandler;
+  getDynamicHeaders?: DynamicHeadersHandler;
   onUnauthorized?: UnauthorizedHandler;
 }
 
