@@ -389,7 +389,6 @@ export class HttpClient {
         return await response.json();
       } catch (e) {
         const error = new Error("响应不是有效的JSON格式", { cause: e });
-        this.#messageFunction?.error?.("返回的不是JSON格式");
         throw error;
       }
     }

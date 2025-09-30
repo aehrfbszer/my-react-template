@@ -45,7 +45,7 @@ const client = new HttpClient({
       handleResponse: async (data) => {
         const { token } = data as { token: string };
         localStorage.setItem(TOKEN_KEY, token);
-        message.success("刷新登录成功");
+        // message.success("刷新登录成功");
       },
     },
     maxRetries: 3,
