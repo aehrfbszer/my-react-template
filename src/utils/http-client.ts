@@ -294,15 +294,32 @@ export class HttpClient {
 
     // +++++++++++++++ 根据data的类型自动设置Content-Type +++++++++++++++
 
+    // 如果data是undefined或null ，则不设置Content-Type
+    // 如果data是空字符串，同样不会进入此处逻辑，但是浏览器会设置Content-Type为text/plain;charset=UTF-8
     if (data && !headers.has("Content-Type")) {
       if (data instanceof FormData || data instanceof URLSearchParams) {
         // 浏览器会自动设置正确的Content-Type
         // FormData会自动设置为 multipart/form-data，并带上正确的 boundary
         // URLSearchParams会自动设置为 application/x-www-form-urlencoded
-      } else if (data instanceof ReadableStream) {
+      } else if (
+        data instanceof ReadableStream ||
+        data instanceof ArrayBuffer ||
+        ArrayBuffer.isView(data)
+      ) {
+        // 对于流和二进制数据，设置为 application/octet-stream
         headers.set("Content-Type", "application/octet-stream");
-      } else {
+      } else if (data instanceof Blob) {
+        // 对于Blob，浏览器会自动设置Content-Type为Blob的type属性
+        // 如果没有type则报错
+        if (!data.type) {
+          throw new Error(
+            "Blob类型的data必须有type属性，或者手动指定Content-Type",
+          );
+        }
+      } else if (typeof data === "object") {
         headers.set("Content-Type", "application/json");
+      } else {
+        // 其他类型（只能是字符串），浏览器会自动设置为 text/plain;charset=UTF-8
       }
     }
     // +++++++++++++++ 根据data的类型自动设置Content-Type结束 +++++++++++++++
@@ -359,17 +376,28 @@ export class HttpClient {
   /**
    * 获取请求体
    */
-  #getRequestBody(data: unknown): BodyInit | undefined {
-    if (!data) return undefined;
+  #getRequestBody(data: FetchConfig["data"]): BodyInit | null {
+    // 使用isNone判断，是为了防止用户传入空字符串
+    if (isNone(data)) return null;
 
     if (
       data instanceof FormData ||
       data instanceof URLSearchParams ||
-      data instanceof ReadableStream
+      data instanceof ReadableStream ||
+      data instanceof Blob ||
+      data instanceof ArrayBuffer ||
+      ArrayBuffer.isView(data) ||
+      typeof data === "string"
     ) {
+      // If data is ArrayBufferView<ArrayBufferLike>, cast to ArrayBufferView<ArrayBuffer>
+      // 这里是为了过ts的类型检查
+      if (ArrayBuffer.isView(data)) {
+        return data as ArrayBufferView<ArrayBuffer>;
+      }
       return data;
     }
 
+    // 这里只能是object类型
     return JSON.stringify(data);
   }
 

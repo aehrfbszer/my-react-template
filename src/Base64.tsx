@@ -192,6 +192,31 @@ const Base64 = () => {
       <Button
         onClick={() => {
           myFetch({
+            url: "/task/blob/",
+            method: "POST",
+            data: new Blob(
+              [
+                JSON.stringify({
+                  name: "bb",
+                  age: 88,
+                  email: "",
+                }),
+              ],
+              // { type: "application/json" },
+            ),
+          });
+          myFetch({
+            url: "/task/string/",
+            method: "POST",
+            data: "just a string",
+          });
+        }}
+      >
+        发送请求测试
+      </Button>
+      <Button
+        onClick={() => {
+          myFetch({
             url: "/task/111/",
             method: "POST",
             data: {

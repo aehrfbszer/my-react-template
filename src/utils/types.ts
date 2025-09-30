@@ -5,7 +5,7 @@ import type { LoadingFunction } from "./loading";
 export interface FetchConfig extends RequestInit {
   url: string;
   method: "GET" | "POST" | "PUT" | "DELETE" | "PATCH" | "HEAD" | "OPTIONS";
-  data?: FormData | URLSearchParams | ReadableStream | object | unknown;
+  data?: RequestInit["body"] | object;
   params?: Record<string, string>;
 }
 
