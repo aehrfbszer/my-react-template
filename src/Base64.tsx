@@ -210,6 +210,17 @@ const Base64 = () => {
             method: "POST",
             data: "just a string",
           });
+          myFetch(
+            {
+              url: "/users/all",
+              method: "GET",
+            },
+            {
+              cache: true,
+            },
+          ).then((res) => {
+            console.log("第二次获取用户列表", res);
+          });
         }}
       >
         发送请求测试
