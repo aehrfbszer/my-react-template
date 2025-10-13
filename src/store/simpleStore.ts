@@ -112,16 +112,16 @@ export class SimpleStore<T> {
     const rawFn = this.#pageSourceMap.get(pageKey);
     const getValue = () => this.#innerGet();
 
+    // React StrictMode 场景：如果框架侧的值已经变化，主动同步一次
+    if (getValue() !== this.#value) {
+      this.#innerSet(this.#value);
+    }
+
     // 如果已存在绑定，直接返回已有 proxySet（如无 proxySet 则创建并缓存）
     if (rawFn) {
       const proxySet = this.#getProxySet(rawFn);
 
       return [getValue, proxySet] as const;
-    }
-
-    // React StrictMode 场景：如果框架侧的值已经变化，主动同步一次
-    if (getValue() !== this.#value) {
-      this.#innerSet(this.#value);
     }
 
     // 创建或复用 proxy set，并缓存
@@ -150,6 +150,8 @@ export class SimpleStore<T> {
       this.#innerSet = setFn;
       this.#innerGet = () => val;
       gc(() => {
+        // React StrictMode 场景：多余的cleanup 导致pageKey被提前删除，这里用来补偿
+        this.#pageSourceMap.set(pageKey, setFn);
         // 清理回调
         return () => {
           this.#pageSourceMap.delete(pageKey);
