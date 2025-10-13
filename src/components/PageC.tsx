@@ -1,8 +1,8 @@
 import { Button } from "antd";
 import cStore from "../store/cStore";
-import { simpleStore } from "../store/simpleStore";
+import { SimpleStore } from "../store/simpleStore";
 
-const useStore = simpleStore.useStore;
+const useStore = SimpleStore.useStore;
 
 const PageCId = Symbol("PageCId");
 

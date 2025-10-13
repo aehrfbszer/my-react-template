@@ -1,5 +1,5 @@
-import { simpleStore } from "./simpleStore";
+import { SimpleStore } from "./simpleStore";
 
-const countStore = new simpleStore("count", 0);
+const countStore = new SimpleStore("count", 0);
 
 export default countStore;

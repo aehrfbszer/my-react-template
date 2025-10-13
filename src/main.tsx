@@ -1,11 +1,11 @@
 import { StrictMode, useEffect, useState } from "react";
 import { createRoot } from "react-dom/client";
 import "./index.css";
-import App from "./App.tsx";
-import { simpleStore } from "./store/simpleStore.ts";
 import { ConfigProvider } from "antd";
+import App from "./App.tsx";
+import { SimpleStore } from "./store/simpleStore.ts";
 
-simpleStore.register(useState, useEffect);
+SimpleStore.register(useState, useEffect);
 createRoot(document.getElementById("root")!).render(
   <StrictMode>
     <ConfigProvider

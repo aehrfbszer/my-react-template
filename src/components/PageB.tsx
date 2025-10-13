@@ -1,9 +1,9 @@
 import { Button } from "antd";
 import { useEffect } from "react";
 import countStore from "../store/countStore";
-import { simpleStore } from "../store/simpleStore";
+import { SimpleStore } from "../store/simpleStore";
 
-const useStore = simpleStore.useStore;
+const useStore = SimpleStore.useStore;
 const pageBId = Symbol("pageB");
 
 function PageB() {

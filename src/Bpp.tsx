@@ -7,7 +7,7 @@ import PageA from "./components/PageA";
 import PageB from "./components/PageB";
 import PageC from "./components/PageC";
 import { SomeContext } from "./Layout";
-import { simpleStore } from "./store/simpleStore";
+import { SimpleStore } from "./store/simpleStore";
 import "./Bpp.css";
 const Bpp: React.FC = () => {
   const location = useLocation();
@@ -49,7 +49,7 @@ const Bpp: React.FC = () => {
         shape="round"
         type="primary"
         onClick={() => {
-          console.log("ggggg", simpleStore.lookAllStore());
+          console.log("ggggg", SimpleStore.lookAllStore());
         }}
       >
         湖区全局
