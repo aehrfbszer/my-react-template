@@ -1,6 +1,6 @@
-import { simpleStore } from "../store/simpleStore";
-import cStore from "../store/cStore";
 import { Button } from "antd";
+import cStore from "../store/cStore";
+import { simpleStore } from "../store/simpleStore";
 
 const useStore = simpleStore.useStore;
 
@@ -23,7 +23,7 @@ function PageC() {
             }));
           }}
         >
-          更新store
+          +6
         </Button>
       </div>
     </div>

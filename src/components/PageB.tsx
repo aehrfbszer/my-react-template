@@ -1,12 +1,17 @@
+import { Button } from "antd";
+import { useEffect } from "react";
 import countStore from "../store/countStore";
 import { simpleStore } from "../store/simpleStore";
-import { Button } from "antd";
 
 const useStore = simpleStore.useStore;
 const pageBId = Symbol("pageB");
 
 function PageB() {
   const [getVal, setVal] = useStore(countStore, pageBId);
+
+  useEffect(() => {
+    setVal((v) => v + 3);
+  }, [setVal]);
 
   console.log("页面B渲染");
 
@@ -16,10 +21,10 @@ function PageB() {
       <div>
         <Button
           onClick={() => {
-            setVal(getVal() + 1);
+            setVal((v) => v + 1);
           }}
         >
-          更新store
+          +1
         </Button>
       </div>
     </div>

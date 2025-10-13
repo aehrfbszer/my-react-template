@@ -134,7 +134,7 @@ const App = () => {
   return (
     <>
       {contextHolder}
-      <RouterProvider router={router} />;
+      <RouterProvider router={router} />
     </>
   );
 };

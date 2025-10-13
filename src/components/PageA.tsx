@@ -1,8 +1,8 @@
+import { Button } from "antd";
 import { useEffect, useId } from "react";
 import countStore from "../store/countStore";
-import { simpleStore } from "../store/simpleStore";
 import cStore from "../store/cStore";
-import { Button } from "antd";
+import { simpleStore } from "../store/simpleStore";
 
 const useStore = simpleStore.useStore;
 const pageAId = Symbol("pageA");
@@ -23,10 +23,10 @@ function PageA() {
       <div>
         <Button
           onClick={() => {
-            setVal(getVal() + 1);
+            setVal((v) => v + 1);
           }}
         >
-          更新store
+          +1
         </Button>
       </div>
       <h2>我的store{getVal1().dgdfg} AAAAAAAA</h2>
@@ -39,7 +39,7 @@ function PageA() {
             }));
           }}
         >
-          更新store
+          +1
         </Button>
       </div>
     </div>
