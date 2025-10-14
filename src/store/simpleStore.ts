@@ -113,7 +113,7 @@ export class SimpleStore<T> {
     const getValue = () => this.#innerGet();
 
     // React StrictMode 场景：如果框架侧的值已经变化，主动同步一次
-    if (getValue() !== this.#value) {
+    if (!Object.is(this.#value, this.#innerGet())) {
       this.#innerSet(this.#value);
     }
 
