@@ -83,6 +83,9 @@ const reloadPage = () => {
 };
 
 // 默认只支持解析json格式的返回，其他格式的数据需要自己处理（毕竟，json是真的主流通信格式了）
+/**
+ * @deprecated 请使用 http-client
+ */
 export const newFetchRequest = ({
   baseUrl,
   timeout = 60 * 1000,
@@ -133,26 +136,41 @@ export const newFetchRequest = ({
   };
   const pendingArrMap: Map<string, Array<() => void>> = new Map();
 
+  /**
+   * @deprecated
+   */
   async function mainFetch<U>(fetchConfig: FetchConfig): Promise<U>;
 
+  /**
+   * @deprecated
+   */
   async function mainFetch<U>(
     fetchConfig: FetchConfig,
     customOptions: Partial<EachRequestCustomOptions<true>>,
     count?: number,
   ): Promise<U>;
 
+  /**
+   * @deprecated
+   */
   async function mainFetch<U>(
     fetchConfig: FetchConfig,
     customOptions: Partial<EachRequestCustomOptions<false>>,
     count?: number,
   ): Promise<Response>;
 
+  /**
+   * @deprecated
+   */
   async function mainFetch<U, T extends boolean>(
     fetchConfig: FetchConfig,
     customOptions?: Partial<EachRequestCustomOptions<T>>,
     count?: number,
   ): Promise<T extends true ? U : Response>;
 
+  /**
+   * @deprecated
+   */
   async function mainFetch<U, T extends boolean>(
     fetchConfig: FetchConfig,
     customOptions: Partial<EachRequestCustomOptions<T>> = {},
@@ -468,6 +486,7 @@ export const newFetchRequest = ({
 };
 
 /***
+ * @deprecated
  * @description: 处理异常
  * @param response
  * @param errObj
