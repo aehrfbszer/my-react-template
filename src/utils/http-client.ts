@@ -267,6 +267,11 @@ export class HttpClient {
   #buildUrl(config: FetchConfig): string {
     const url = new URL(config.url, this.#baseUrl);
     if (config.params) {
+      /**
+       * url.search赋值时的字符串带不带前导问号都一样，规范 https://url.spec.whatwg.org/#dom-url-search
+       * 在set时会自动去掉前导问号，在get时会带上前导问号
+       * new URLSearchParams(xxx).toString() 生成的字符串是不带问号的
+       */
       url.search = new URLSearchParams(config.params).toString();
     }
     return url.toString();
