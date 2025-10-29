@@ -8,11 +8,7 @@ import { SimpleStore } from './simpleStore';
 import { useState, useEffect } from 'react';
 
 SimpleStore.register(
-  (init) => {
-    // 返回 [value, setValue]，与 useState 兼容
-    const [value, setValue] = useState(init);
-    return [value, setValue];
-  },
+  useState,
   useEffect
 );
 
@@ -40,7 +36,7 @@ import { SimpleStore } from './simpleStore';
 import { ref, onUnmounted } from 'vue';
 
 SimpleStore.register(
-  (init) => ref(init),
+  ref,
   onUnmounted
 );
 

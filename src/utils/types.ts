@@ -5,7 +5,13 @@ import type { LoadingFunction } from "./loading";
 export interface FetchConfig extends RequestInit {
   url: string;
   method: "GET" | "POST" | "PUT" | "DELETE" | "PATCH" | "HEAD" | "OPTIONS";
+  /**
+   * 当data为普通object时，里面值为undefined的属性会被自动删除（JSON.stringify干的）
+   */
   data?: RequestInit["body"] | object;
+  /**
+   * object里面的某个值为undefined的属性会被转成【字符串的undefined】（new URLSearchParams(config.params).toString()干的）
+   */
   params?: Record<string, string>;
 }
 
