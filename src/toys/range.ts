@@ -30,9 +30,12 @@ export class RangeIterator {
       yield this.#current++;
     }
   }
+  [Symbol.dispose]() {
+    console.log("RangeIterator disposed");
+  }
 }
-
-for (const num of new RangeIterator(5, 10)) {
+using r = new RangeIterator(5, 10);
+for (const num of r) {
   console.log(num); // Logs numbers from 5 to 9
 }
 console.log("---");

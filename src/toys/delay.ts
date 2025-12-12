@@ -15,6 +15,9 @@ export class DelayIterator {
   constructor(ms: number) {
     this.#ms = ms;
   }
+  [Symbol.dispose]() {
+    console.log("DelayIterator disposed");
+  }
 
   // 这一行等价于 [Symbol.asyncIterator]: async function*() {
   async *[Symbol.asyncIterator]() {
@@ -35,8 +38,8 @@ export class DelayIterator {
 setInterval(() => {
   console.log("keep-alive");
 }, 500); // keep module as ESM
-
-for await (const aa of new DelayIterator(1000)) {
+using d = new DelayIterator(1000);
+for await (const aa of d) {
   console.log("Delayed 1 second", aa);
 }
 
