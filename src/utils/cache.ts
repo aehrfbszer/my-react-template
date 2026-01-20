@@ -18,7 +18,9 @@ export class RequestCache {
 
     if (this.#cache.size >= this.#capacity) {
       const [firstKey] = this.#cache.keys();
-      this.#cache.delete(firstKey);
+      if (firstKey) {
+        this.#cache.delete(firstKey);
+      }
     }
 
     this.#cache.set(key, {

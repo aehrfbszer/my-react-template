@@ -1,7 +1,6 @@
 import { Button, Form, Input, Radio, Typography } from "antd";
 import { useEffect, useState } from "react";
 import { myFetch } from "./api/myFetch";
-import init, { base64_to_bytes, bytes_to_base64 } from "./pkg/base64_wasm";
 import "./Base64.css";
 
 // const wasmObj = {
@@ -27,9 +26,9 @@ type FieldType = {
   encodedText?: string;
   rawText?: string;
   urlSafe: boolean;
+  strict: boolean;
 };
 const { Text } = Typography;
-await init();
 
 const CopyText = ({ value }: { value?: string }) => (
   <Text copyable keyboard>
@@ -47,17 +46,24 @@ const Base64 = () => {
     urlSafe,
     rawText = "",
     encodedText = "",
+    strict,
   }: FieldType) => {
     if (encodeOrDecode === "encode") {
+      const bytes = new TextEncoder().encode(rawText);
       form.setFieldValue(
         "encodedText",
-        bytes_to_base64(new TextEncoder().encode(rawText), urlSafe),
+        bytes.toBase64({
+          alphabet: urlSafe ? "base64url" : "base64",
+          omitPadding: !strict,
+        }),
       );
     } else if (encodeOrDecode === "decode") {
-      form.setFieldValue(
-        "rawText",
-        new TextDecoder().decode(base64_to_bytes(encodedText, urlSafe)),
-      );
+      const bytes = Uint8Array.fromBase64(encodedText, {
+        alphabet: urlSafe ? "base64url" : "base64",
+        lastChunkHandling: strict ? "strict" : "loose",
+      });
+
+      form.setFieldValue("rawText", new TextDecoder().decode(bytes));
     }
   };
   useEffect(() => {
@@ -93,7 +99,11 @@ const Base64 = () => {
       <Form
         form={form}
         onFinish={handleSubmit}
-        initialValues={{ encodeOrDecode: "encode", urlSafe: false }}
+        initialValues={{
+          encodeOrDecode: "encode",
+          urlSafe: false,
+          strict: true,
+        }}
       >
         <Form.Item<FieldType>
           label="base64编码方式"
@@ -103,6 +113,16 @@ const Base64 = () => {
           <Radio.Group>
             <Radio value={false}> 普通 </Radio>
             <Radio value={true}> url 安全 </Radio>
+          </Radio.Group>
+        </Form.Item>
+        <Form.Item<FieldType>
+          label="base64严谨格式"
+          name="strict"
+          rules={[{ required: true }]}
+        >
+          <Radio.Group>
+            <Radio value={true}> 是 </Radio>
+            <Radio value={false}> 否 </Radio>
           </Radio.Group>
         </Form.Item>
         <Form.Item<FieldType>

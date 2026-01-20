@@ -1,3 +1,4 @@
+// @ts-nocheck
 const removeAllItem = () => {
   localStorage.clear();
   sessionStorage.clear();

@@ -71,7 +71,7 @@ export class SimpleStore<T> {
   // 调用注册的 allocator，返回 proxy 和 gc
   #doProxy(allocatorIndex?: number): [unknown, GarbageCollection] {
     const [updater, gc] = SimpleStore.#globalUpdater[allocatorIndex ?? 0] ?? [];
-    if (!updater) throw new Error("未注册，请在应用入口注册 allocator");
+    if (!updater || !gc) throw new Error("未注册，请在应用入口注册 allocator");
     const proxySome = updater(this.#value);
     return [proxySome, gc];
   }
