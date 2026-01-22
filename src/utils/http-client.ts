@@ -98,10 +98,7 @@ export class HttpClient {
    * @param config 请求配置
    * @param options 可选配置项
    */
-  async fetch<T>(
-    config: FetchConfig,
-    options?: Partial<JsonOptions>,
-  ): Promise<T>;
+  async fetch<T>(config: FetchConfig, options?: Partial<JsonOptions>): Promise<T>;
 
   /**
    * 发送请求并返回原始Response对象
@@ -182,8 +179,7 @@ export class HttpClient {
       }
 
       // 处理其它类型的错误
-      const finalError =
-        error instanceof Error ? error : new Error(String(error));
+      const finalError = error instanceof Error ? error : new Error(String(error));
       const msg = finalError.message || "请求发生错误";
       this.#messageFunction?.error?.(msg);
       throw finalError;
@@ -216,19 +212,14 @@ export class HttpClient {
    * 生成缓存键
    */
   #getCacheKey(config: FetchConfig): string {
-    const params = config.params
-      ? new URLSearchParams(config.params).toString()
-      : "";
+    const params = config.params ? new URLSearchParams(config.params).toString() : "";
     return `${config.method}:${config.url}${params ? `?${params}` : ""}`;
   }
 
   /**
    * 执行实际的fetch请求
    */
-  async #doFetch(
-    config: FetchConfig,
-    options: Required<CommonOptions>,
-  ): Promise<Response> {
+  async #doFetch(config: FetchConfig, options: Required<CommonOptions>): Promise<Response> {
     const controller = new AbortController();
     const { signal } = controller;
 
@@ -240,18 +231,18 @@ export class HttpClient {
       const { promise, resolve, reject } = Promise.withResolvers<Response>();
 
       globalThis
-        .fetch(
-          this.#buildUrl(config),
-          this.#buildFetchConfig(config, options, signal),
-        )
+        .fetch(this.#buildUrl(config), this.#buildFetchConfig(config, options, signal))
         .then(resolve)
         .catch(reject);
 
-      setTimeout(() => {
-        // abort时传入超时信息，会将上面的globalThis.fetch的状态变为aborted，并且reason会被捕获到reject中
-        // 这里在调用abort时传入一个字符串作为reason，外面被捕获到的error是这个字符串，并不是一个Error对象
-        controller.abort(`请求超时：超过${this.#timeout}ms`);
-      }, this.#timeout);
+      setTimeout(
+        () => {
+          // abort时传入超时信息，会将上面的globalThis.fetch的状态变为aborted，并且reason会被捕获到reject中
+          // 这里在调用abort时传入一个字符串作为reason，外面被捕获到的error是这个字符串，并不是一个Error对象
+          controller.abort(`请求超时：超过${this.#timeout}ms`);
+        },
+        this.#timeout,
+      );
 
       return await promise;
     } finally {
@@ -317,9 +308,7 @@ export class HttpClient {
         // 对于Blob，浏览器会自动设置Content-Type为Blob的type属性
         // 如果没有type则报错
         if (!data.type) {
-          throw new Error(
-            "Blob类型的data必须有type属性，或者手动指定Content-Type",
-          );
+          throw new Error("Blob类型的data必须有type属性，或者手动指定Content-Type");
         }
       } else if (typeof data === "object") {
         headers.set("Content-Type", "application/json");
@@ -432,10 +421,7 @@ export class HttpClient {
   /**
    * 创建HTTP错误
    */
-  async #createHttpError(
-    response: Response,
-    options: Required<CommonOptions>,
-  ): Promise<HttpError> {
+  async #createHttpError(response: Response, options: Required<CommonOptions>): Promise<HttpError> {
     let message = "请求失败";
     let errorData: unknown;
 

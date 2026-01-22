@@ -105,21 +105,13 @@ const Base64 = () => {
           strict: true,
         }}
       >
-        <Form.Item<FieldType>
-          label="base64编码方式"
-          name="urlSafe"
-          rules={[{ required: true }]}
-        >
+        <Form.Item<FieldType> label="base64编码方式" name="urlSafe" rules={[{ required: true }]}>
           <Radio.Group>
             <Radio value={false}> 普通 </Radio>
             <Radio value={true}> url 安全 </Radio>
           </Radio.Group>
         </Form.Item>
-        <Form.Item<FieldType>
-          label="base64严谨格式"
-          name="strict"
-          rules={[{ required: true }]}
-        >
+        <Form.Item<FieldType> label="base64严谨格式" name="strict" rules={[{ required: true }]}>
           <Radio.Group>
             <Radio value={true}> 是 </Radio>
             <Radio value={false}> 否 </Radio>
@@ -127,9 +119,7 @@ const Base64 = () => {
         </Form.Item>
         <Form.Item<FieldType>
           label="原始文本"
-          shouldUpdate={(prev, curr) =>
-            prev.encodeOrDecode !== curr.encodeOrDecode
-          }
+          shouldUpdate={(prev, curr) => prev.encodeOrDecode !== curr.encodeOrDecode}
         >
           {({ getFieldValue }) => {
             return (
@@ -149,9 +139,7 @@ const Base64 = () => {
         </Form.Item>
         <Form.Item<FieldType>
           label="base64编码后"
-          shouldUpdate={(prev, curr) =>
-            prev.encodeOrDecode !== curr.encodeOrDecode
-          }
+          shouldUpdate={(prev, curr) => prev.encodeOrDecode !== curr.encodeOrDecode}
         >
           {({ getFieldValue }) => {
             return (
@@ -170,11 +158,7 @@ const Base64 = () => {
           }}
         </Form.Item>
 
-        <Form.Item<FieldType>
-          label="编码/解码"
-          name="encodeOrDecode"
-          rules={[{ required: true }]}
-        >
+        <Form.Item<FieldType> label="编码/解码" name="encodeOrDecode" rules={[{ required: true }]}>
           <Radio.Group>
             <Radio value="encode">编码</Radio>
             <Radio value="decode">解码</Radio>

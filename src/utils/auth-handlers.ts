@@ -10,9 +10,7 @@ export const bearerTokenHandler = (
 ): DynamicHeadersHandler => {
   return () => {
     const token = getToken();
-    return token
-      ? { Authorization: `Bearer ${token}` }
-      : ({} as Record<string, string>);
+    return token ? { Authorization: `Bearer ${token}` } : ({} as Record<string, string>);
   };
 };
 

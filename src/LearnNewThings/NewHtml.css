@@ -1,46 +1,46 @@
 /* 正确：使用变量 */
 
-
 .html-new-feature-container {
-    /* 使用变量 */
-    background-color: var(--color-secondary);
-    color: var(--color-white);
-    padding: 1rem;
+  /* 使用变量 */
+  background-color: var(--color-secondary);
+  color: var(--color-white);
+  padding: 1rem;
+  border-radius: 0.5rem;
+  display: grid;
+  place-items: center;
+
+  .card {
+    background: linear-gradient(
+      135deg,
+      var(--color-secondary),
+      color(display-p3 0.7 0.2 0.9),
+      /* 紫色 */ var(--color-accent)
+    );
+    width: 80vw;
+    box-shadow: 0 4px 15px color(display-p3 0.2 0.2 0.2 / 0.3);
+    height: 50vh;
     border-radius: 0.5rem;
-    display: grid;
-    place-items: center;
+    padding: 1rem;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+  }
 
-    .card {
-        background: linear-gradient(135deg,
-                var(--color-secondary),
-                color(display-p3 0.7 0.2 0.9),
-                /* 紫色 */
-                var(--color-accent));
-        width: 80vw;
-        box-shadow: 0 4px 15px color(display-p3 0.2 0.2 0.2 / 0.3);
-        height: 50vh;
-        border-radius: 0.5rem;
-        padding: 1rem;
-        display: flex;
-        flex-direction: column;
-        justify-content: center;
-        align-items: center;
+  .title {
+    color: var(--color-primary);
+    background-color: var(--color-white);
+  }
+
+  /* 正确：按标准格式手写 */
+  .button {
+    background-color: color(display-p3 0.3 0.8 0.4);
+    /* 鲜绿色按钮 */
+    border-color: color(display-p3 0.3 0.8 0.4 / 0.7);
+    /* 半透明边框 */
+
+    &:hover {
+      background-color: color-mix(in display-p3, var(--color-primary) 80%, white 20%);
     }
-
-    .title {
-        color: var(--color-primary);
-        background-color: var(--color-white);
-    }
-
-    /* 正确：按标准格式手写 */
-    .button {
-        background-color: color(display-p3 0.3 0.8 0.4);
-        /* 鲜绿色按钮 */
-        border-color: color(display-p3 0.3 0.8 0.4 / 0.7);
-        /* 半透明边框 */
-
-        &:hover {
-            background-color: color-mix(in display-p3, var(--color-primary) 80%, white 20%);
-        }
-    }
+  }
 }

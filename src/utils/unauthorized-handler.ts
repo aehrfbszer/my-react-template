@@ -6,9 +6,7 @@ import type { FetchConfig, UnauthorizedHandler } from "./types";
  * @param loginUrl 登录页面URL，默认为 /login
  * @returns UnauthorizedHandler
  */
-export const redirectToLoginHandler = (
-  loginUrl = "/login",
-): UnauthorizedHandler => {
+export const redirectToLoginHandler = (loginUrl = "/login"): UnauthorizedHandler => {
   return async (_error: HttpError, _config: FetchConfig): Promise<never> => {
     localStorage.clear();
     sessionStorage.clear();
@@ -35,10 +33,7 @@ export interface RefreshTokenConfig {
   maxRetries?: number;
 }
 
-type PendingAction = [
-  doRetry: () => void,
-  doCancel: (reason?: unknown) => void,
-];
+type PendingAction = [doRetry: () => void, doCancel: (reason?: unknown) => void];
 
 /**
  * Token 刷新处理器
@@ -56,11 +51,7 @@ export const refreshTokenHandler = ({
   // 记录重试次数
   const retryCounts = new Map<string, number>();
 
-  return async <T>(
-    _error: HttpError,
-    config: FetchConfig,
-    retry: () => Promise<T>,
-  ): Promise<T> => {
+  return async <T>(_error: HttpError, config: FetchConfig, retry: () => Promise<T>): Promise<T> => {
     const oldToken = getOldToken();
     if (!oldToken) {
       throw new Error("未登录");
@@ -99,16 +90,13 @@ export const refreshTokenHandler = ({
     try {
       const { fetchConfig } = refreshConfig;
       const { url, ...rest } = fetchConfig;
-      const response = await fetch(
-        new URL(url, window.location.origin).toString(),
-        {
-          ...rest,
-          headers: {
-            Authorization: `Bearer ${oldToken}`,
-            ...rest.headers,
-          },
+      const response = await fetch(new URL(url, window.location.origin).toString(), {
+        ...rest,
+        headers: {
+          Authorization: `Bearer ${oldToken}`,
+          ...rest.headers,
         },
-      );
+      });
 
       if (!response.ok) {
         throw new Error("刷新token失败");
@@ -145,9 +133,8 @@ export const refreshTokenHandler = ({
  * @param handler 自定义的处理逻辑
  * @returns UnauthorizedHandler
  */
-export const customUnauthorizedHandler = (
-  handler: UnauthorizedHandler,
-): UnauthorizedHandler => handler;
+export const customUnauthorizedHandler = (handler: UnauthorizedHandler): UnauthorizedHandler =>
+  handler;
 
 /**
  * 组合多个401处理器
@@ -155,14 +142,8 @@ export const customUnauthorizedHandler = (
  * @param handlers 401处理器列表
  * @returns UnauthorizedHandler
  */
-export const chainUnauthorizedHandlers = (
-  handlers: UnauthorizedHandler[],
-): UnauthorizedHandler => {
-  return async <T>(
-    error: HttpError,
-    config: FetchConfig,
-    retry: () => Promise<T>,
-  ): Promise<T> => {
+export const chainUnauthorizedHandlers = (handlers: UnauthorizedHandler[]): UnauthorizedHandler => {
+  return async <T>(error: HttpError, config: FetchConfig, retry: () => Promise<T>): Promise<T> => {
     let lastError: Error | undefined;
 
     for (const handler of handlers) {

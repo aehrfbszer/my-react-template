@@ -63,12 +63,7 @@ export interface FetchConfig {
    * data为object=>"application/json"，会使用JSON.stringify处理
    * data为其他类型（string、number、array等）=>"application/json"，会使用JSON.stringify处理
    * */
-  data?:
-    | ReadableStream
-    | FormData
-    | URLSearchParams
-    | Record<string, unknown>
-    | any;
+  data?: ReadableStream | FormData | URLSearchParams | Record<string, unknown> | any;
   /** 由于参数是在params中，所以键值对中的值没有必要允许number，请提前转成数字字符 */
   params?: {
     [key: string]: string;
@@ -218,10 +213,7 @@ export const newFetchRequest = ({
       }
 
       if (fetchConfig.data) {
-        if (
-          fetchConfig.data instanceof FormData ||
-          fetchConfig.data instanceof URLSearchParams
-        ) {
+        if (fetchConfig.data instanceof FormData || fetchConfig.data instanceof URLSearchParams) {
           //  Fetch 标准规定如果 body 是一个 URLSearchParams 对象，那么它应该序列化为 application/x-www-form-urlencoded
           // FormData同理multipart/form-data，所以不需要设置Content-Type
           config.body = fetchConfig.data;
@@ -352,8 +344,7 @@ export const newFetchRequest = ({
           // 这里的情况count一般都是0，如果count大于0，那就是刷新token成功了，但请求接口还是401，说明count大于0是后端逻辑错误
           if (count < 3) {
             // 把请求保存下来，但还不执行
-            const onceAgainRequest = () =>
-              mainFetch<U, T>(fetchConfig, customOptions, count + 1);
+            const onceAgainRequest = () => mainFetch<U, T>(fetchConfig, customOptions, count + 1);
             // 看一下有没有新token
             const nowToken = getToken?.();
             if (nowToken && nowToken !== token) {
@@ -369,8 +360,7 @@ export const newFetchRequest = ({
             // 进到if里，说明已经在尝试刷新了
             if (arr) {
               // 返回一个Promise，让外部代码保持pending状态，让外部代码无感知，认为只是一次请求等久一点而已，并没有重试
-              const { promise, resolve } =
-                Promise.withResolvers<T extends true ? U : Response>();
+              const { promise, resolve } = Promise.withResolvers<T extends true ? U : Response>();
 
               // arr中存待执行的请求（在arr中请求执行后，返回的请求结果会被resolve出来，外部代码无感知）
               arr.push(() => {
@@ -428,11 +418,7 @@ export const newFetchRequest = ({
             if (myOptions.errorMessageShow) {
               // 当成obj，具体逻辑让后面处理
               const errObj = myOptions.useApiErrorInfo ? errJson : undefined;
-              const msg = httpErrorStatusHandle(
-                response,
-                errObj,
-                panicOrRestart,
-              ); // 处理错误状态码
+              const msg = httpErrorStatusHandle(response, errObj, panicOrRestart); // 处理错误状态码
               if (msg) {
                 handleMessage?.error?.(`【${response.status}】${msg}`);
               }
@@ -440,11 +426,7 @@ export const newFetchRequest = ({
 
             return Promise.reject(errJson);
           } catch {
-            const msg = httpErrorStatusHandle(
-              response,
-              undefined,
-              panicOrRestart,
-            ); // 处理错误状态码
+            const msg = httpErrorStatusHandle(response, undefined, panicOrRestart); // 处理错误状态码
             if (msg) {
               handleMessage?.error?.(`【${response.status}】${msg}`);
             }
@@ -457,9 +439,7 @@ export const newFetchRequest = ({
       }
     } catch (error: unknown) {
       console.groupCollapsed();
-      console.error(
-        "请求失败了，取消请求(超时、重复)与网络错误是正常的，无法处理",
-      );
+      console.error("请求失败了，取消请求(超时、重复)与网络错误是正常的，无法处理");
       console.error(error);
       console.error("其他情况不是预期的错误，需要开发者注意");
       console.groupEnd();

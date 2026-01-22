@@ -1,15 +1,7 @@
 import { useId, useState } from "react";
 import "./NewHtml.css";
 
-const PopSome = ({
-  time,
-  text,
-  id,
-}: {
-  time: string;
-  text: string;
-  id: string;
-}) => {
+const PopSome = ({ time, text, id }: { time: string; text: string; id: string }) => {
   return (
     <div
       id={id}

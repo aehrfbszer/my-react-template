@@ -19,13 +19,7 @@ const Layout = ({ menus }: LayoutProps) => {
 
   return (
     <div className="layout-container">
-      {menus ? (
-        <Menu
-          selectedKeys={[location.pathname]}
-          mode="horizontal"
-          items={menus}
-        />
-      ) : null}
+      {menus ? <Menu selectedKeys={[location.pathname]} mode="horizontal" items={menus} /> : null}
       <SomeContext value={{ aa: 1 }}>
         <Outlet />
       </SomeContext>

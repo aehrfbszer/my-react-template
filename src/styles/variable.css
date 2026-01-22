@@ -5,7 +5,7 @@
   --color-primary: color(display-p3 0.85 0.2 0.35); /* 主色调（深粉） */
   --color-secondary: color(display-p3 0.2 0.65 0.9); /* 辅助色（亮蓝） */
   --color-accent: color(display-p3 0.9 0.7 0.15); /* 强调色（暖黄） */
-  
+
   /* 中性色 */
   --color-white: color(display-p3 1 1 1); /* 白色 */
   --color-black: color(display-p3 0 0 0); /* 黑色 */

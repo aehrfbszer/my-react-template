@@ -85,9 +85,7 @@ export interface RawOptions extends Partial<CommonOptions> {
  * 某些全局headers需要动态生成/获取
  * 例如：用于生成请求认证相关的headers
  */
-export type DynamicHeadersHandler = (
-  config: FetchConfig,
-) => Record<string, string>;
+export type DynamicHeadersHandler = (config: FetchConfig) => Record<string, string>;
 
 export type UnauthorizedHandler = <T>(
   error: HttpError,

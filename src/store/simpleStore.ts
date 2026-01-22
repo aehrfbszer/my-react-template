@@ -25,10 +25,7 @@ export class SimpleStore<T> {
   #pageSourceMap = new Map<string | symbol, (v: SetFnParam<T>) => void>();
 
   // rawSetFn -> proxySetFn
-  #proxyFnWeakMap = new WeakMap<
-    (v: SetFnParam<T>) => void,
-    (v: SetFnParam<T>) => void
-  >();
+  #proxyFnWeakMap = new WeakMap<(v: SetFnParam<T>) => void, (v: SetFnParam<T>) => void>();
 
   static #globalUpdater: Array<[Allocator, GarbageCollection]> = [];
 
@@ -106,9 +103,7 @@ export class SimpleStore<T> {
     return proxy;
   }
 
-  #done(
-    pageKey: string | symbol,
-  ): readonly [() => T, (v: SetFnParam<T>) => void] {
+  #done(pageKey: string | symbol): readonly [() => T, (v: SetFnParam<T>) => void] {
     const rawFn = this.#pageSourceMap.get(pageKey);
     const getValue = () => this.#innerGet();
 
