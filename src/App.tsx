@@ -1,58 +1,15 @@
 import type { RouteObject } from "react-router";
-import {
-  BrowserRouter,
-  createBrowserRouter,
-  Navigate,
-  Route,
-  RouterProvider,
-  Routes,
-} from "react-router";
+import { createBrowserRouter, Navigate, RouterProvider } from "react-router";
 import LearnNewThings from "./LearnNewThings/index.tsx";
 import "./styles/index.css";
-import { message, Spin } from "antd";
-import { lazy, Suspense, useEffect } from "react";
+import { message } from "antd";
+import { lazy, useEffect } from "react";
 import { setMessageFunction } from "./api/myFetch.ts";
 
-const Layout = lazy(() => import("./Layout.tsx"));
 const Bpp = lazy(() => import("./Bpp.tsx"));
 const Base64 = lazy(() => import("./Base64.tsx"));
 const Login = lazy(() => import("./Login.tsx"));
 const LayoutWithAuth = lazy(() => import("./LayoutWithAuth.tsx"));
-
-const AnotherRouterStyle = (
-  <BrowserRouter>
-    <Suspense fallback={<Spin spinning={true}>Loading...</Spin>}>
-      <Routes>
-        <Route index element={<Navigate to="/base" replace />} />
-        <Route path="hello" element={<Bpp />} />
-        <Route path="home" element={<Bpp />} />
-        <Route path="base" element={<Base64 />} />
-
-        <Route path="login" element={<Login />} />
-
-        <Route path="systemA" element={<LayoutWithAuth />}>
-          <Route index element={<Bpp />} />
-          <Route path="query" element={<Bpp />} />
-          <Route path="edit" element={<Bpp />} />
-        </Route>
-
-        <Route path="fruit" element={<Layout />}>
-          <Route index element={<Bpp />} />
-          <Route path="apple" element={<Bpp />} />
-          <Route path="banana" element={<Bpp />} />
-        </Route>
-
-        {/*只是前缀*/}
-        <Route path="prefix">
-          <Route index element={<Bpp />} />
-          <Route path="anything" element={<Bpp />} />
-        </Route>
-        <Route path="*" element={<h1>404</h1>} />
-      </Routes>
-    </Suspense>
-  </BrowserRouter>
-);
-console.log(AnotherRouterStyle, "AnotherRouterStyle");
 
 export const routes: RouteObject[] = [
   {
