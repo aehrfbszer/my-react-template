@@ -22,12 +22,9 @@ export class DelayIterator {
   // 这一行等价于 [Symbol.asyncIterator]: async function*() {
   async *[Symbol.asyncIterator]() {
     const { resolve, promise } = Promise.withResolvers<void>();
-    setTimeout(
-      () => {
-        resolve();
-      },
-      this.#ms,
-    );
+    setTimeout(() => {
+      resolve();
+    }, this.#ms);
     await promise;
 
     let i = 10;

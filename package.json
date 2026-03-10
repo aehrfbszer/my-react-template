@@ -14,24 +14,24 @@
     "prepare": "husky"
   },
   "dependencies": {
-    "antd": "^6.3.1",
+    "antd": "^6.3.2",
     "react": "^19.2.4",
     "react-dom": "^19.2.4",
     "react-router": "^7.13.1"
   },
   "devDependencies": {
-    "@types/node": "^25.3.2",
+    "@types/node": "^25.4.0",
     "@types/react": "^19.2.14",
     "@types/react-dom": "^19.2.3",
     "@vitejs/plugin-react": "^5.1.4",
     "@webgpu/types": "^0.1.69",
     "babel-plugin-react-compiler": "^1.0.0",
     "husky": "^9.1.7",
-    "lint-staged": "^16.2.7",
+    "lint-staged": "^16.3.2",
     "mitata": "^1.0.34",
-    "oxfmt": "^0.26.0",
-    "oxlint": "^1.50.0",
-    "typescript": "6.0.0-beta",
-    "vite": "8.0.0-beta.16"
+    "oxfmt": "^0.36.0",
+    "oxlint": "^1.52.0",
+    "typescript": "6.0.1-rc",
+    "vite": "8.0.0-beta.18"
   }
 }

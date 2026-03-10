@@ -235,14 +235,11 @@ export class HttpClient {
         .then(resolve)
         .catch(reject);
 
-      setTimeout(
-        () => {
-          // abort时传入超时信息，会将上面的globalThis.fetch的状态变为aborted，并且reason会被捕获到reject中
-          // 这里在调用abort时传入一个字符串作为reason，外面被捕获到的error是这个字符串，并不是一个Error对象
-          controller.abort(`请求超时：超过${this.#timeout}ms`);
-        },
-        this.#timeout,
-      );
+      setTimeout(() => {
+        // abort时传入超时信息，会将上面的globalThis.fetch的状态变为aborted，并且reason会被捕获到reject中
+        // 这里在调用abort时传入一个字符串作为reason，外面被捕获到的error是这个字符串，并不是一个Error对象
+        controller.abort(`请求超时：超过${this.#timeout}ms`);
+      }, this.#timeout);
 
       return await promise;
     } finally {
