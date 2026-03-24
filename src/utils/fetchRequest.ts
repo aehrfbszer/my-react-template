@@ -149,7 +149,7 @@ export const newFetchRequest = ({
   /**
    * @deprecated
    */
-  async function mainFetch<U>(
+  async function mainFetch<_U>(
     fetchConfig: FetchConfig,
     customOptions: Partial<EachRequestCustomOptions<false>>,
     count?: number,
