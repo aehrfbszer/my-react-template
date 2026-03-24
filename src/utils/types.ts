@@ -87,6 +87,19 @@ export interface RawOptions extends Partial<CommonOptions> {
  */
 export type DynamicHeadersHandler = (config: FetchConfig) => Record<string, string>;
 
+export type HandleErrorFunction = (
+  rawRes: Response,
+  rawParams: [
+    config: FetchConfig,
+    options: Required<CommonOptions & { responseIsJson: boolean }>,
+    innerFetch: <T>(
+      config: FetchConfig,
+      options: Required<CommonOptions & { responseIsJson: boolean }>,
+    ) => Promise<T | Response>,
+  ],
+  retry: (value: Response | Promise<Response>) => void,
+) => void;
+
 export type UnauthorizedHandler = <T>(
   error: HttpError,
   config: FetchConfig,
@@ -105,9 +118,8 @@ export interface HttpClientConfig {
   messageFunction?: MessageFunction | null;
   loadingFunction?: LoadingFunction | null;
   globalFetchConfig?: RequestInit;
-  panicOrRestart?: () => never;
   getDynamicHeaders?: DynamicHeadersHandler;
-  onUnauthorized?: UnauthorizedHandler;
+  handleError?: HandleErrorFunction;
 }
 
 /** 基础响应结构 */

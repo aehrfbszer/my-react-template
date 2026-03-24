@@ -45,13 +45,17 @@ export const refreshTokenHandler = ({
   getNewToken,
   refreshConfig,
   maxRetries = 1,
-}: RefreshTokenConfig): UnauthorizedHandler => {
+}: RefreshTokenConfig) => {
   // 记录正在刷新的token相关的回调
   const pendingRefresh = new Map<string, Array<PendingAction>>();
   // 记录重试次数
   const retryCounts = new Map<string, number>();
 
-  return async <T>(_error: HttpError, config: FetchConfig, retry: () => Promise<T>): Promise<T> => {
+  return async (
+    config: FetchConfig,
+    retry: () => void,
+    resolve: (value: Response | Promise<Response>) => void,
+  ): Promise<void> => {
     const oldToken = getOldToken();
     if (!oldToken) {
       throw new Error("未登录");
@@ -71,16 +75,16 @@ export const refreshTokenHandler = ({
     // 检查token是否已经被其他请求更新
     const newToken = getNewToken();
     if (newToken && newToken !== oldToken) {
-      return retry();
+      retry();
+      return;
     }
 
     // 如果已经有请求在刷新，等待其完成
     const pendingKey = oldToken;
     const pending = pendingRefresh.get(pendingKey);
     if (pending) {
-      return new Promise<T>((resolve, reject) => {
-        pending.push([() => resolve(retry()), reject]);
-      });
+      pending.push([() => retry(), (err) => resolve(Promise.reject(err))]);
+      return;
     }
 
     // 开始刷新token

@@ -33,23 +33,33 @@ const client = new HttpClient({
   // 组合使用Bearer Token和API Key认证
   getDynamicHeaders: bearerTokenHandler(getToken),
 
-  onUnauthorized: refreshTokenHandler({
-    getOldToken: getToken,
-    getNewToken: getToken,
-    refreshConfig: {
-      fetchConfig: {
-        url: `${import.meta.env.VITE_BASE_URL}/refresh-token`,
-        method: "POST",
-      },
-      responseIsJson: true,
-      handleResponse: async (data) => {
-        const { token } = data as { token: string };
-        localStorage.setItem(TOKEN_KEY, token);
-        // message.success("刷新登录成功");
-      },
-    },
-    maxRetries: 3,
-  }),
+  handleError: (rawRes, rawParams, continueFunc) => {
+    if (rawRes.status === 401) {
+      const [config, options, innerFetch] = rawParams;
+
+      refreshTokenHandler({
+        getOldToken: getToken,
+        getNewToken: getToken,
+        refreshConfig: {
+          fetchConfig: {
+            url: `${import.meta.env.VITE_BASE_URL}/refresh-token`,
+            method: "POST",
+          },
+          responseIsJson: true,
+          handleResponse: async (data) => {
+            const { token } = data as { token: string };
+            localStorage.setItem(TOKEN_KEY, token);
+            // message.success("刷新登录成功");
+          },
+        },
+        maxRetries: 3,
+      })(
+        config,
+        () => continueFunc(innerFetch(config, options)),
+        continueFunc as (reason?: unknown) => void,
+      ).catch(continueFunc);
+    }
+  },
 
   // 显示加载和错误消息
   messageFunction: {
