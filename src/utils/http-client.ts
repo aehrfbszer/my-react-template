@@ -403,7 +403,18 @@ export class HttpClient {
       throw await this.#createHttpError(response, options);
     }
 
+    if (!response.body) {
+      // 实际上浏览器的实现，body是不可能为null的，即使没有响应体，body也是一个ReadableStream；node我就不知道了
+      throw new Error("响应体为空");
+    }
+
     if (options.responseIsJson) {
+      if (response.status === 204) {
+        console.warn(
+          "响应状态码为204 No Content，正常情况(HTTP规范)下不应该有响应体，考虑设置responseIsJson为false，跳过对body进行JSON解析",
+        );
+      }
+
       try {
         return await response.json();
       } catch (e) {
