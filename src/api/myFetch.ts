@@ -60,13 +60,15 @@ const client = new HttpClient({
       });
     } else {
       message.error(`请求失败：${rawRes.status} ${rawRes.statusText}`);
-      resolve(
-        Promise.reject({
-          status: rawRes.status,
-          statusText: rawRes.statusText,
-          response: rawRes,
-        }),
-      );
+      rawRes
+        .json()
+        .then((data) => {
+          resolve(Promise.reject(data));
+        })
+        .catch((e) => {
+          console.error("响应体不是有效的JSON");
+          resolve(Promise.reject(e));
+        });
     }
   },
 

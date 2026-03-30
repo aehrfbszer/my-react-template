@@ -44,13 +44,7 @@ export class HttpClient {
         this.#messageFunction?.error?.(`请求失败，状态码：【${rawRes.status}】`);
       }
 
-      const errObj = {
-        status: rawRes.status,
-        statusText: rawRes.statusText,
-        response: rawRes,
-      };
-
-      resolve(Promise.reject(errObj));
+      resolve(Promise.reject(rawRes));
     },
   }: HttpClientConfig) {
     if (!baseUrl) {
@@ -124,37 +118,23 @@ export class HttpClient {
       if (cached) return cached;
     }
 
-    try {
-      const response = await this.#doFetch(config, finalOptions);
-      const data = await this.#handleResponse<T>(response, config, finalOptions);
+    const response = await this.#doFetch(config, finalOptions);
+    const data = await this.#handleResponse<T>(response, config, finalOptions);
 
-      const dontCache = ["no-cache", "no-store"].includes(
-        response.headers.get("Cache-Control") ?? "",
-      );
+    const dontCache = ["no-cache", "no-store"].includes(
+      response.headers.get("Cache-Control") ?? "",
+    );
 
-      if (
-        finalOptions.cache &&
-        config.method === "GET" &&
-        finalOptions.responseIsJson &&
-        !dontCache
-      ) {
-        this.#cache.set(requestKey, data, finalOptions.cacheTTL);
-      }
-
-      return data;
-    } catch (error) {
-      // 处理可能的 AbortError（请求被取消）
-      if (error instanceof DOMException && error.name === "AbortError") {
-        this.#messageFunction?.error?.("请求被取消");
-        throw error;
-      }
-
-      // 处理其它类型的错误
-      const finalError = error instanceof Error ? error : new Error(String(error));
-      const msg = finalError.message || "请求发生错误";
-      this.#messageFunction?.error?.(msg);
-      throw finalError;
+    if (
+      finalOptions.cache &&
+      config.method === "GET" &&
+      finalOptions.responseIsJson &&
+      !dontCache
+    ) {
+      this.#cache.set(requestKey, data, finalOptions.cacheTTL);
     }
+
+    return data;
   }
 
   /**
