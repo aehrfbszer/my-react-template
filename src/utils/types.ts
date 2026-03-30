@@ -18,7 +18,7 @@ export interface FetchConfig extends RequestInit {
  * 通用请求选项
  * 会覆盖全局配置（包括静态全局配置和动态全局配置）
  */
-export interface CommonOptions {
+export interface CommonOptions<J extends boolean> {
   /** 是否开启loading层效果，默认【true】 */
   loading: boolean;
 
@@ -53,28 +53,13 @@ export interface CommonOptions {
    */
   withoutGlobalDynamicHeaders: boolean;
 
-  /** 是否启用缓存，慎用，绝大多数情况是不需要开启的；
-   * 默认【false】
-   * 仅支持GET请求；
-   * 不能设置responseIsJson为false，否则启用cache也无效；
-   * 如果响应头中包含 `Cache-Control: no-cache` 或 `Cache-Control: no-store` 则不同样会缓存
+  /**
+   * 响应是否解析为JSON，默认【true】
+   * 如果为false，则fetch方法的返回值是原始的Response对象，由调用方决定如何处理响应体
+   * 如果为true，则fetch方法会自动调用response.json()并返回解析后的数据
+   * 注意：如果接口响应的Content-Type不是application/json，或者响应体不是有效的JSON字符串，且responseIsJson为true，则会导致解析失败并抛出错误
    */
-  cache: boolean;
-
-  /** 缓存时间（毫秒）
-   * 默认【5分钟】
-   */
-  cacheTTL: number;
-}
-
-/** JSON响应选项 */
-export interface JsonOptions extends CommonOptions {
-  responseIsJson: true;
-}
-
-/** 原始响应选项 */
-export interface RawOptions extends Partial<CommonOptions> {
-  responseIsJson: false;
+  responseIsJson: J;
 }
 
 /**
@@ -83,17 +68,14 @@ export interface RawOptions extends Partial<CommonOptions> {
  */
 export type DynamicHeadersHandler = (config: FetchConfig) => Record<string, string>;
 
-export type HandleErrorFunction = (
+export type HandleErrorFunction = <T, J extends boolean>(
   rawRes: Response,
   rawParams: [
     config: FetchConfig,
-    options: Required<CommonOptions & { responseIsJson: boolean }>,
-    innerFetch: <T>(
-      config: FetchConfig,
-      options: Required<CommonOptions & { responseIsJson: boolean }>,
-    ) => Promise<T | Response>,
+    options: Required<CommonOptions<J>>,
+    innerFetch: (config: FetchConfig, options: Required<CommonOptions<J>>) => Promise<T>,
   ],
-  resolve: (value: Response | Promise<Response>) => void,
+  resolve: (value: T | Promise<T>) => void,
 ) => void;
 
 export type MessageFunction = {

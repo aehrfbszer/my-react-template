@@ -1,4 +1,3 @@
-import { RequestCache } from "./cache";
 import { type LoadingFunction, LoadingManager } from "./loading";
 import type {
   CommonOptions,
@@ -6,9 +5,7 @@ import type {
   FetchConfig,
   HandleErrorFunction,
   HttpClientConfig,
-  JsonOptions,
   MessageFunction,
-  RawOptions,
 } from "./types";
 
 const NoneSymbol = Symbol("none");
@@ -24,7 +21,6 @@ const isNone = (val: unknown): val is null | undefined => {
 export class HttpClient {
   readonly #baseUrl: string;
   readonly #timeout: number;
-  readonly #cache: RequestCache;
   #loadingManager: LoadingManager;
   #messageFunction: MessageFunction | null;
   readonly #getDynamicHeaders?: DynamicHeadersHandler;
@@ -56,7 +52,6 @@ export class HttpClient {
     this.#messageFunction = messageFunction;
     this.#loadingManager = new LoadingManager(loadingFunction);
     this.#globalFetchConfig = globalFetchConfig;
-    this.#cache = new RequestCache();
     this.#handleError = handleError;
   }
 
@@ -74,65 +69,35 @@ export class HttpClient {
     this.#loadingManager.setLoadingFunction(fn);
   }
 
-  /**
-   * 发送请求并返回JSON响应
-   * @param config 请求配置
-   * @param options 可选配置项
-   */
-  async fetch<T>(config: FetchConfig, options?: Partial<JsonOptions>): Promise<T>;
+  async fetch<T>(config: FetchConfig): Promise<T>;
 
-  /**
-   * 发送请求并返回原始Response对象
-   * @param config 请求配置
-   * @param options 非JSON响应的配置项
-   */
-  async fetch(config: FetchConfig, options: RawOptions): Promise<Response>;
-
-  /**
-   * @param config 请求配置
-   * @param options
-   */
-  async fetch<T>(
+  async fetch<T, J extends boolean = true>(
     config: FetchConfig,
-    options: Partial<CommonOptions> & { responseIsJson: boolean },
-  ): Promise<T | Response>;
+    options: Partial<CommonOptions<J>>,
+  ): Promise<J extends true ? T : Response>;
+
+  async fetch<T, J extends boolean = false>(
+    config: FetchConfig,
+    options?: Partial<CommonOptions<J>>,
+  ): Promise<J extends true ? T : Response>;
 
   /**
    * 请求实现
    * @param config 请求配置
    * @param options 配置项
    */
-  async fetch<T>(
+  async fetch<T, J extends boolean>(
     config: FetchConfig,
-    options: Partial<CommonOptions & { responseIsJson: boolean }> = {
-      responseIsJson: true,
-    },
-  ): Promise<T | Response> {
+    options?: Partial<CommonOptions<J>>,
+  ): Promise<J extends true ? T : Response> {
     const finalOptions = this.#getDefaultOptions(options);
 
-    // 为每个请求生成唯一 key（用于追踪重试次数），同时用于缓存
-    const requestKey = this.#getCacheKey(config);
-
-    if (finalOptions.cache && config.method === "GET") {
-      const cached = this.#cache.get<T>(requestKey);
-      if (cached) return cached;
-    }
-
-    const response = await this.#doFetch(config, finalOptions);
-    const data = await this.#handleResponse<T>(response, config, finalOptions);
-
-    const dontCache = ["no-cache", "no-store"].includes(
-      response.headers.get("Cache-Control") ?? "",
-    );
-
-    if (
-      finalOptions.cache &&
-      config.method === "GET" &&
-      finalOptions.responseIsJson &&
-      !dontCache
-    ) {
-      this.#cache.set(requestKey, data, finalOptions.cacheTTL);
-    }
+    const response = await this.#doFetch(config, finalOptions).catch((err) => {
+      const errorMessage = err instanceof Error ? err.message : String(err);
+      this.#messageFunction?.error?.(`请求发生错误：${errorMessage}`);
+      throw err;
+    });
+    const data = await this.#handleResponse<T, J>(response, config, finalOptions);
 
     return data;
   }
@@ -140,16 +105,14 @@ export class HttpClient {
   /**
    * 获取合并后的默认配置
    */
-  #getDefaultOptions(
-    options: Partial<CommonOptions & { responseIsJson?: boolean }>,
-  ): Required<CommonOptions & { responseIsJson: boolean }> {
+  #getDefaultOptions<T extends boolean>(
+    options?: Partial<CommonOptions<T>>,
+  ): Required<CommonOptions<T>> {
     return {
       loading: true,
       errorMessageShow: true,
       withoutGlobalDynamicHeaders: false,
-      responseIsJson: true,
-      cache: false,
-      cacheTTL: 5 * 60 * 1000,
+      responseIsJson: true as T,
       contentType: "",
       moreHeaders: null,
       clearHeaders: null,
@@ -159,17 +122,12 @@ export class HttpClient {
   }
 
   /**
-   * 生成缓存键
-   */
-  #getCacheKey(config: FetchConfig): string {
-    const params = config.params ? new URLSearchParams(config.params).toString() : "";
-    return `${config.method}:${config.url}${params ? `?${params}` : ""}`;
-  }
-
-  /**
    * 执行实际的fetch请求
    */
-  async #doFetch(config: FetchConfig, options: Required<CommonOptions>): Promise<Response> {
+  async #doFetch<T extends boolean>(
+    config: FetchConfig,
+    options: Required<CommonOptions<T>>,
+  ): Promise<Response> {
     const controller = new AbortController();
     const { signal } = controller;
 
@@ -218,9 +176,9 @@ export class HttpClient {
   /**
    * 构建fetch配置
    */
-  #buildFetchConfig(
+  #buildFetchConfig<J extends boolean>(
     config: FetchConfig,
-    options: Required<CommonOptions>,
+    options: Required<CommonOptions<J>>,
     signal: AbortSignal,
   ): RequestInit {
     const {
@@ -345,15 +303,15 @@ export class HttpClient {
   /**
    * 处理响应
    */
-  async #handleResponse<T>(
+  async #handleResponse<T, J extends boolean>(
     response: Response,
     config: FetchConfig,
-    options: Required<CommonOptions & { responseIsJson: boolean }>,
-  ): Promise<T | Response> {
+    options: Required<CommonOptions<J>>,
+  ): Promise<J extends true ? T : Response> {
     if (!response.ok) {
-      const { promise, resolve } = Promise.withResolvers<Response>();
+      const { promise, resolve } = Promise.withResolvers<J extends true ? T : Response>();
 
-      this.#handleError(response, [config, options, this.fetch], resolve);
+      this.#handleError(response, [config, options, this.fetch.bind(this)], resolve);
 
       return promise;
     }
@@ -371,13 +329,13 @@ export class HttpClient {
       }
 
       try {
-        return await response.json();
+        return (await response.json()) as J extends true ? T : Response;
       } catch (e) {
         const error = new Error("响应不是有效的JSON格式", { cause: e });
         throw error;
       }
     }
 
-    return response;
+    return response as J extends true ? T : Response;
   }
 }

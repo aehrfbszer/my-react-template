@@ -31,10 +31,10 @@ export const refreshTokenHandler = ({
   // 记录重试次数
   const retryCounts = new Map<string, number>();
 
-  return async (
+  return async <T = Response>(
     config: FetchConfig,
     retry: () => void,
-    resolve: (value: Response | Promise<Response>) => void,
+    resolve: (value: T | Promise<T>) => void,
   ): Promise<void> => {
     const oldToken = getOldToken();
     if (!oldToken) {
