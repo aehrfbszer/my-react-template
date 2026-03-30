@@ -38,7 +38,7 @@ export class HttpClient {
     messageFunction = null,
     loadingFunction = null,
     globalFetchConfig = {},
-    handleError = (rawRes: Response, rawParams, retry) => {
+    handleError = (rawRes, rawParams, resolve) => {
       const [_config, options] = rawParams;
       if (options.errorMessageShow) {
         this.#messageFunction?.error?.(`请求失败，状态码：【${rawRes.status}】`);
@@ -50,7 +50,7 @@ export class HttpClient {
         response: rawRes,
       };
 
-      retry(Promise.reject(errObj));
+      resolve(Promise.reject(errObj));
     },
   }: HttpClientConfig) {
     if (!baseUrl) {
@@ -166,7 +166,6 @@ export class HttpClient {
     return {
       loading: true,
       errorMessageShow: true,
-      useApiErrorInfo: true,
       withoutGlobalDynamicHeaders: false,
       responseIsJson: true,
       cache: false,

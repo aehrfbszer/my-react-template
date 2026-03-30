@@ -1,4 +1,3 @@
-import type { HttpError } from "./errors";
 import type { LoadingFunction } from "./loading";
 
 /** HTTP请求配置 */
@@ -25,9 +24,6 @@ export interface CommonOptions {
 
   /** 是否展示错误信息，默认【true】 */
   errorMessageShow: boolean;
-
-  /** 是否使用API错误信息，默认【true】 */
-  useApiErrorInfo: boolean;
 
   /** 自定义Content-Type，默认【""】 */
   contentType: string;
@@ -97,14 +93,8 @@ export type HandleErrorFunction = (
       options: Required<CommonOptions & { responseIsJson: boolean }>,
     ) => Promise<T | Response>,
   ],
-  retry: (value: Response | Promise<Response>) => void,
+  resolve: (value: Response | Promise<Response>) => void,
 ) => void;
-
-export type UnauthorizedHandler = <T>(
-  error: HttpError,
-  config: FetchConfig,
-  retry: () => Promise<T>,
-) => Promise<T>;
 
 export type MessageFunction = {
   success?: (msg: string) => void;

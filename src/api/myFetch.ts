@@ -23,6 +23,24 @@ const getToken = () => localStorage.getItem(TOKEN_KEY);
  */
 // const getApiKey = () => localStorage.getItem(API_KEY) ?? "";
 
+const handler = refreshTokenHandler({
+  getOldToken: getToken,
+  getNewToken: getToken,
+  refreshConfig: {
+    fetchConfig: {
+      url: `${import.meta.env.VITE_BASE_URL}/refresh-token`,
+      method: "POST",
+    },
+    responseIsJson: true,
+    handleResponse: async (data) => {
+      const { token } = data as { token: string };
+      localStorage.setItem(TOKEN_KEY, token);
+      // message.success("刷新登录成功");
+    },
+  },
+  maxRetries: 3,
+});
+
 /**
  * 创建HTTP客户端实例
  */
@@ -33,31 +51,22 @@ const client = new HttpClient({
   // 组合使用Bearer Token和API Key认证
   getDynamicHeaders: bearerTokenHandler(getToken),
 
-  handleError: (rawRes, rawParams, continueFunc) => {
+  handleError: (rawRes, rawParams, resolve) => {
     if (rawRes.status === 401) {
       const [config, options, innerFetch] = rawParams;
 
-      refreshTokenHandler({
-        getOldToken: getToken,
-        getNewToken: getToken,
-        refreshConfig: {
-          fetchConfig: {
-            url: `${import.meta.env.VITE_BASE_URL}/refresh-token`,
-            method: "POST",
-          },
-          responseIsJson: true,
-          handleResponse: async (data) => {
-            const { token } = data as { token: string };
-            localStorage.setItem(TOKEN_KEY, token);
-            // message.success("刷新登录成功");
-          },
-        },
-        maxRetries: 3,
-      })(
-        config,
-        () => continueFunc(innerFetch(config, options)),
-        continueFunc as (reason?: unknown) => void,
-      ).catch(continueFunc);
+      handler(config, () => resolve(innerFetch(config, options)), resolve).catch((e) => {
+        resolve(Promise.reject(e));
+      });
+    } else {
+      message.error(`请求失败：${rawRes.status} ${rawRes.statusText}`);
+      resolve(
+        Promise.reject({
+          status: rawRes.status,
+          statusText: rawRes.statusText,
+          response: rawRes,
+        }),
+      );
     }
   },
 
