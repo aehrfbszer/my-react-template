@@ -93,8 +93,10 @@ export class HttpClient {
     const finalOptions = this.#getDefaultOptions(options);
 
     const response = await this.#doFetch(config, finalOptions).catch((err) => {
-      const errorMessage = err instanceof Error ? err.message : String(err);
-      this.#messageFunction?.error?.(`请求发生错误：${errorMessage}`);
+      if (finalOptions.errorMessageShow) {
+        const errorMessage = err instanceof Error ? err.message : String(err);
+        this.#messageFunction?.error?.(`请求发生错误：${errorMessage}`);
+      }
       throw err;
     });
     const data = await this.#handleResponse<T, J>(response, config, finalOptions);

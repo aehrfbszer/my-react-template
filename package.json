@@ -14,7 +14,7 @@
     "prepare": "husky"
   },
   "dependencies": {
-    "antd": "^6.3.4",
+    "antd": "^6.3.5",
     "react": "^19.2.4",
     "react-dom": "^19.2.4",
     "react-router": "^7.13.2"
