@@ -90,17 +90,3 @@ export interface HttpClientConfig {
   getDynamicHeaders?: DynamicHeadersHandler;
   handleError?: HandleErrorFunction;
 }
-
-/** 基础响应结构 */
-export interface BaseResponse<T> {
-  data: T;
-  code: number;
-  message?: string;
-}
-
-/** 分页响应结构 */
-export interface PageResponse<T> extends BaseResponse<T[]> {
-  total: number;
-  page: number;
-  pageSize: number;
-}
