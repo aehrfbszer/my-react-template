@@ -301,6 +301,11 @@ export class HttpClient {
     if (!response.ok) {
       const { promise, resolve } = Promise.withResolvers<J extends true ? T : Response>();
 
+      /**
+       * 之所以在这里生成请求ID，是因为在没拿到response之前，没有追踪请求链路的需求。
+       * 没拿到response就说明要不是网络错误，要不是signal.abort了，这两种情况都不需要追踪请求链路了；
+       * 只有拿到response了，才说明请求链路走通了，这时候才有追踪请求链路的需求了
+       */
       const requestId = crypto.randomUUID(); // 生成请求ID，关联请求和刷新token的过程，便于调试和日志记录
 
       this.#handleError(
@@ -308,7 +313,8 @@ export class HttpClient {
         [
           {
             ...config,
-            requestId: config.requestId || requestId, // 将请求ID传递给错误处理函数，便于调试和日志记录
+            // 之所以这样赋值，是因为请求可能是重试的请求，要保留起始请求的ID，便于追踪整个请求链路；
+            requestId: config.requestId || requestId,
           },
           options,
           this.fetch.bind(this),
