@@ -12,6 +12,10 @@ export interface FetchConfig extends RequestInit {
    * object里面的某个值为undefined的属性会被转成【字符串的undefined】（new URLSearchParams(config.params).toString()干的）
    */
   params?: Record<string, string>;
+  /**
+   * 请求ID，关联请求和刷新token的过程，便于调试和日志记录
+   */
+  requestId?: string;
 }
 
 /**

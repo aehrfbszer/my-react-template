@@ -10,11 +10,13 @@ export interface RefreshTokenConfig {
   getNewToken: () => string | null;
   /** 刷新token的请求配置 */
   refreshConfig: {
-    fetchConfig: Omit<FetchConfig, "data" | "params">; // 刷新请求的配置，data和params通常不需要
+    fetchConfig: Omit<FetchConfig, "data" | "params">; // 刷新请求的配置，data和params不支持，请传入fetch原生的body
     responseIsJson: boolean; // 是否将响应解析为JSON
     handleResponse: (res: unknown) => void | Promise<void>;
   };
-  /** 最大重试次数 */
+  /** 最大重试次数
+   * 这个指的是刷新token的最大重试次数，不是请求本身的重试次数；当达到最大重试次数时，后续请求将不会再尝试刷新token，而是直接失败，通常会提示用户重新登录
+   */
   maxRetries?: number;
 }
 
@@ -35,16 +37,23 @@ export const refreshTokenHandler = ({
     config: FetchConfig,
     retry: () => void,
     resolve: (value: T | Promise<T>) => void,
-    requestId?: string, // 可选的请求ID参数，便于调试和日志记录
   ): Promise<void> => {
     const oldToken = getOldToken();
     if (!oldToken) {
       throw new Error("未登录");
     }
 
+    console.warn(
+      `请求${config.url}返回401，开始刷新token，旧token: ${oldToken}, 请求ID: ${config.requestId}`,
+    );
+
     // 使用请求URL作为重试计数的key
-    const retryKey = requestId || `${config.method}:${config.url}`;
+    const retryKey = config.requestId || `${config.method}:${config.url}`;
     const currentRetries = retryCounts.get(retryKey) ?? 0;
+
+    console.warn(
+      `请求ID: ${config.requestId}, 当前刷新token重试次数: ${currentRetries}, 刷新token最大重试次数: ${maxRetries},请求本身的重试次数: ${currentRetries + 1}`,
+    );
 
     if (currentRetries >= maxRetries) {
       retryCounts.delete(retryKey);
@@ -86,6 +95,8 @@ export const refreshTokenHandler = ({
       if (!response.ok) {
         throw new Error("刷新token失败");
       }
+
+      console.log(`刷新token成功, 请求ID: ${config.requestId}`);
 
       if (refreshConfig.responseIsJson) {
         const data = await response.json();

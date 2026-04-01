@@ -191,8 +191,13 @@ export class HttpClient {
       url: _u,
       headers: useHeaders,
       signal: userSignal,
+      requestId,
       ...rest
     } = config;
+
+    if (requestId) {
+      console.info(`method: ${method}，URL: ${config.url}, 请求ID: ${requestId}`);
+    }
 
     let headers = new Headers(this.#globalFetchConfig.headers);
 
@@ -296,7 +301,20 @@ export class HttpClient {
     if (!response.ok) {
       const { promise, resolve } = Promise.withResolvers<J extends true ? T : Response>();
 
-      this.#handleError(response, [config, options, this.fetch.bind(this)], resolve);
+      const requestId = crypto.randomUUID(); // 生成请求ID，关联请求和刷新token的过程，便于调试和日志记录
+
+      this.#handleError(
+        response,
+        [
+          {
+            ...config,
+            requestId: config.requestId || requestId, // 将请求ID传递给错误处理函数，便于调试和日志记录
+          },
+          options,
+          this.fetch.bind(this),
+        ],
+        resolve,
+      );
 
       return promise;
     }

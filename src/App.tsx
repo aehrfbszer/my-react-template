@@ -10,11 +10,16 @@ const Bpp = lazy(() => import("./Bpp.tsx"));
 const Base64 = lazy(() => import("./Base64.tsx"));
 const Login = lazy(() => import("./Login.tsx"));
 const LayoutWithAuth = lazy(() => import("./LayoutWithAuth.tsx"));
+const NetworkTest = lazy(() => import("./test/NetworkTest.tsx"));
 
 export const routes: RouteObject[] = [
   {
     index: true,
-    element: <Navigate to={`/${LearnNewThings.path}`} replace />,
+    element: <Navigate to={`/network-test`} replace />,
+  },
+  {
+    path: "network-test",
+    element: <NetworkTest />,
   },
   {
     path: "hello",

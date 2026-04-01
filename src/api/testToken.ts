@@ -9,27 +9,23 @@ import { refreshTokenHandler } from "../utils/unauthorized-handler";
 const TOKEN_KEY = "token";
 
 /**
- * API Key存储的key
- */
-const API_KEY = "api-key";
-
-/**
  * 获取token
  */
 const getToken = () => localStorage.getItem(TOKEN_KEY);
-
-/**
- * 获取API Key
- */
-// const getApiKey = () => localStorage.getItem(API_KEY) ?? "";
 
 const handler = refreshTokenHandler({
   getOldToken: getToken,
   getNewToken: getToken,
   refreshConfig: {
     fetchConfig: {
-      url: `${import.meta.env.VITE_BASE_URL}/refresh-token`,
+      url: `${import.meta.env.VITE_BASE_URL}/api/v1/refresh`,
       method: "POST",
+
+      // 注意：这里不能带body，因为这里是初始化时一次性的，除非刷新页面，否则拿到的token永远是旧的，导致死循环
+      // body: JSON.stringify({ token: getToken() }),
+      // headers: {
+      //   "Content-Type": "application/json",
+      // },
     },
     responseIsJson: true,
     handleResponse: async (data) => {
@@ -56,6 +52,9 @@ const client = new HttpClient({
       const [config, options, innerFetch] = rawParams;
 
       handler(config, () => resolve(innerFetch(config, options)), resolve).catch((e) => {
+        message.error(
+          `请求失败，未能刷新登录状态，请重新登录：${e instanceof Error ? `${e.message}` : String(e)}`,
+        );
         resolve(Promise.reject(e));
       });
     } else {
@@ -74,16 +73,15 @@ const client = new HttpClient({
 /**
  * 导出实例方法
  */
-export const myFetch = client.fetch.bind(client);
+export const someFetch = client.fetch.bind(client);
 export const setMessageFunction = client.setMessageFunction.bind(client);
 export const setLoadingFunction = client.setLoadingFunction.bind(client);
 
 /**
  * 登录成功后调用此方法保存凭据
  */
-export const saveCredentials = (token: string, apiKey: string) => {
+export const saveCredentials = (token: string) => {
   localStorage.setItem(TOKEN_KEY, token);
-  localStorage.setItem(API_KEY, apiKey);
 };
 
 /**
