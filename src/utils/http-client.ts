@@ -25,6 +25,9 @@ export class HttpClient {
   #messageFunction: MessageFunction | null;
   readonly #getDynamicHeaders?: DynamicHeadersHandler;
   readonly #globalFetchConfig: RequestInit;
+
+  // 错误处理函数，默认会将非2xx的响应当做错误，入参的resolve函数必须被调用，否则fetch方法的Promise将永远处于pending状态
+  // 设计成必须调用resolve函数，是为了让用户有机会在错误处理函数里进行重试等操作，如果不调用resolve函数，用户就无法控制fetch方法的Promise的状态了
   readonly #handleError: HandleErrorFunction;
 
   constructor({
@@ -275,12 +278,7 @@ export class HttpClient {
       ArrayBuffer.isView(data) ||
       typeof data === "string"
     ) {
-      // If data is ArrayBufferView<ArrayBufferLike>, cast to ArrayBufferView<ArrayBuffer>
-      // 这里是为了过ts的类型检查
-      if (ArrayBuffer.isView(data)) {
-        return data as ArrayBufferView<ArrayBuffer>;
-      }
-      return data;
+      return data as BodyInit;
     }
 
     // 这里只能是object类型

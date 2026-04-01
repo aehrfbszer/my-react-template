@@ -35,6 +35,7 @@ export const refreshTokenHandler = ({
     config: FetchConfig,
     retry: () => void,
     resolve: (value: T | Promise<T>) => void,
+    requestId?: string, // 可选的请求ID参数，便于调试和日志记录
   ): Promise<void> => {
     const oldToken = getOldToken();
     if (!oldToken) {
@@ -42,7 +43,7 @@ export const refreshTokenHandler = ({
     }
 
     // 使用请求URL作为重试计数的key
-    const retryKey = `${config.method}:${config.url}`;
+    const retryKey = requestId || `${config.method}:${config.url}`;
     const currentRetries = retryCounts.get(retryKey) ?? 0;
 
     if (currentRetries >= maxRetries) {

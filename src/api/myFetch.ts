@@ -55,7 +55,9 @@ const client = new HttpClient({
     if (rawRes.status === 401) {
       const [config, options, innerFetch] = rawParams;
 
-      handler(config, () => resolve(innerFetch(config, options)), resolve).catch((e) => {
+      const requestId = crypto.randomUUID(); // 生成请求ID，关联请求和刷新token的过程，便于调试和日志记录
+
+      handler(config, () => resolve(innerFetch(config, options)), resolve, requestId).catch((e) => {
         resolve(Promise.reject(e));
       });
     } else {
