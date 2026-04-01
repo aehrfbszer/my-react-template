@@ -25,24 +25,17 @@ export interface CommonOptions<J extends boolean> {
   /** 是否展示错误信息，默认【true】 */
   errorMessageShow: boolean;
 
-  /** 自定义Content-Type，默认【""】 */
-  contentType: string;
-
-  /** 额外的请求头
-   * 默认【null】
-   * 如果和上面的 `contentType` 有冲突，则以 `moreHeaders` 为准
-   */
-  moreHeaders: Record<string, string> | null;
-
   /** 清除某些全局headers
    * 默认【null】
    * 例如：全局静态/动态请求头设置了Authorization，如果该接口不需要Authorization，可以在这里配置 `["Authorization"]`
+   * 如需想要覆盖全局静态/动态请求头或者新加额外请求头，直接加在原生fetch的第一个参数里面的headers配置项即可，用户的headers配置项会覆盖全局静态/动态/默认请求头
    */
   clearHeaders: string[] | null;
 
   /** 清除所有全局headers
    * 默认【false】
    * 例如：全局静态/动态请求头设置了Authorization，如果该接口不需要Authorization，可以开启此选项
+   * 如需想要覆盖全局静态/动态请求头或者新加额外请求头，直接加在原生fetch的第一个参数里面的headers配置项即可，用户的headers配置项会覆盖全局静态/动态/默认请求头
    */
   clearAllHeaders?: boolean;
 

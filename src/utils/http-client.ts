@@ -115,8 +115,6 @@ export class HttpClient {
       errorMessageShow: true,
       withoutGlobalDynamicHeaders: false,
       responseIsJson: true as T,
-      contentType: "",
-      moreHeaders: null,
       clearHeaders: null,
       clearAllHeaders: false,
       ...options,
@@ -195,6 +193,32 @@ export class HttpClient {
 
     let headers = new Headers(this.#globalFetchConfig.headers);
 
+    // ++++++++++++++++++++++++++++++++++++++++++++++++++这一部分是用户自定义的全局逻辑，应该覆盖默认逻辑
+    if (this.#getDynamicHeaders && !options.withoutGlobalDynamicHeaders) {
+      const dynamicHeaders = this.#getDynamicHeaders(config);
+      for (const [key, value] of Object.entries(dynamicHeaders)) {
+        headers.set(key, value);
+      }
+    }
+    // ++++++++++++++++++++++++++++++++++++++++++++++++++用户自定义的全局逻辑结束
+
+    if (options.clearHeaders) {
+      for (const key of options.clearHeaders) {
+        headers.delete(key);
+      }
+    }
+    if (options.clearAllHeaders) {
+      headers = new Headers();
+    }
+
+    // ++++++++++++++++++++++++++++++++++++++++++++++++++这一部分是每次请求时传入的配置，应该覆盖前面所有逻辑
+    if (useHeaders) {
+      for (const [key, value] of Object.entries(useHeaders)) {
+        headers.set(key, value as string);
+      }
+    }
+    // ++++++++++++++++++++++++++++++++++++++++++++++++++每次请求时传入的配置结束
+
     // +++++++++++++++ 根据data的类型自动设置Content-Type +++++++++++++++
 
     // 如果data是undefined或null ，则不设置Content-Type
@@ -224,45 +248,6 @@ export class HttpClient {
       }
     }
     // +++++++++++++++ 根据data的类型自动设置Content-Type结束 +++++++++++++++
-
-    // ++++++++++++++++++++++++++++++++++++++++++++++++++这一部分是用户自定义的全局逻辑，应该覆盖默认逻辑
-    if (this.#getDynamicHeaders && !options.withoutGlobalDynamicHeaders) {
-      const dynamicHeaders = this.#getDynamicHeaders(config);
-      for (const [key, value] of Object.entries(dynamicHeaders)) {
-        headers.set(key, value);
-      }
-    }
-    // ++++++++++++++++++++++++++++++++++++++++++++++++++用户自定义的全局逻辑结束
-
-    if (options.clearHeaders) {
-      for (const key of options.clearHeaders) {
-        headers.delete(key);
-      }
-    }
-    if (options.clearAllHeaders) {
-      headers = new Headers();
-    }
-
-    // ++++++++++++++++++++++++++++++++++++++++++++++++++这一部分是每次请求时传入的配置，应该覆盖前面所有逻辑
-    if (useHeaders) {
-      for (const [key, value] of Object.entries(useHeaders)) {
-        headers.set(key, value as string);
-      }
-    }
-    // ++++++++++++++++++++++++++++++++++++++++++++++++++每次请求时传入的配置结束
-
-    // +++++++++++++++++++++++++++++++++++++++++++++++++++这一部分是用户每次请求时传入的配置之外还附加的额外选项，应该覆盖前面所有逻辑
-
-    if (options.contentType) {
-      headers.set("Content-Type", options.contentType);
-    }
-
-    if (options.moreHeaders) {
-      for (const [key, value] of Object.entries(options.moreHeaders)) {
-        headers.set(key, value);
-      }
-    }
-    // +++++++++++++++++++++++++++++++++++++++++++++++++++用户每次请求时传入的配配置之外还附加的额外选项结束
 
     return {
       ...this.#globalFetchConfig,
