@@ -2,6 +2,12 @@ import type { LoadingFunction } from "./loading";
 
 /** HTTP请求配置 */
 export interface FetchConfig extends RequestInit {
+  /**
+   * 注意：JS原生URL构造函数的行为。
+   * 1. 如果config.url是一个绝对URL（包含协议和host），则会直接使用这个URL，忽略HttpClient构造函数中的baseUrl配置
+   * 2. 如果config.url是一个相对URL，则会将HttpClient构造函数中的baseUrl作为基础URL进行拼接，最终请求URL = baseUrl + config.url
+   * 3. config.url中的pathname/search/hash部分会被保留并参与最终URL的构建
+   */
   url: string;
   method: "GET" | "POST" | "PUT" | "DELETE" | "PATCH" | "HEAD" | "OPTIONS";
   /**
@@ -65,6 +71,9 @@ export interface CommonOptions<J extends boolean> {
  */
 export type DynamicHeadersHandler = (config: FetchConfig) => Record<string, string>;
 
+/**
+ * 注意rawParams中的config: FetchConfig里面会保留原始signal/默认signal，如果继续透传使用，超时是按第一次触发的开始时间算起。或许你有替换成新的signal的需求？
+ */
 export type HandleErrorFunction = <T, J extends boolean>(
   rawRes: Response,
   rawParams: [
@@ -82,7 +91,15 @@ export type MessageFunction = {
 
 /** HTTP客户端配置 */
 export interface HttpClientConfig {
+  /**
+   * 接口基础URL，最终请求URL = baseUrl + config.url；
+   * js原生URL构造函数的行为。
+   * 注意：baseUrl只有origin部分会被使用，pathname/search/hash部分会被忽略
+   */
   baseUrl: string;
+  /**
+   * 接口超时时间，超时后会中断请求，单位毫秒，默认0表示不超时
+   */
   timeout?: number;
   messageFunction?: MessageFunction | null;
   loadingFunction?: LoadingFunction | null;

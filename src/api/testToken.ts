@@ -47,6 +47,12 @@ const client = new HttpClient({
   // 组合使用Bearer Token和API Key认证
   getDynamicHeaders: bearerTokenHandler(getToken),
 
+  // globalFetchConfig: {
+  //   headers: {
+  //     "X-TEST-HEADER": "test-value", // 全局静态请求头示例
+  //   },
+  // },
+
   handleError: (rawRes, rawParams, resolve) => {
     if (rawRes.status === 401) {
       const [config, options, innerFetch] = rawParams;

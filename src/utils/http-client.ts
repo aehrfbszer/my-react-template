@@ -32,7 +32,7 @@ export class HttpClient {
 
   constructor({
     baseUrl,
-    timeout = 60_000,
+    timeout = 0,
     getDynamicHeaders,
     messageFunction = null,
     loadingFunction = null,
@@ -131,9 +131,6 @@ export class HttpClient {
     config: FetchConfig,
     options: Required<CommonOptions<T>>,
   ): Promise<Response> {
-    const controller = new AbortController();
-    const { signal } = controller;
-
     try {
       if (options.loading) {
         this.#loadingManager.start();
@@ -141,16 +138,15 @@ export class HttpClient {
 
       const { promise, resolve, reject } = Promise.withResolvers<Response>();
 
+      let globalTimeoutSignal: AbortSignal | null = null;
+      if (this.#timeout > 0) {
+        globalTimeoutSignal = AbortSignal.timeout(this.#timeout);
+      }
+
       globalThis
-        .fetch(this.#buildUrl(config), this.#buildFetchConfig(config, options, signal))
+        .fetch(this.#buildUrl(config), this.#buildFetchConfig(config, options, globalTimeoutSignal))
         .then(resolve)
         .catch(reject);
-
-      setTimeout(() => {
-        // abort时传入超时信息，会将上面的globalThis.fetch的状态变为aborted，并且reason会被捕获到reject中
-        // 这里在调用abort时传入一个字符串作为reason，外面被捕获到的error是这个字符串，并不是一个Error对象
-        controller.abort(`请求超时：超过${this.#timeout}ms`);
-      }, this.#timeout);
 
       return await promise;
     } finally {
@@ -163,7 +159,7 @@ export class HttpClient {
   /**
    * 构建完整的URL
    */
-  #buildUrl(config: FetchConfig): string {
+  #buildUrl(config: FetchConfig): URL {
     const url = new URL(config.url, this.#baseUrl);
     if (config.params) {
       /**
@@ -173,7 +169,7 @@ export class HttpClient {
        */
       url.search = new URLSearchParams(config.params).toString();
     }
-    return url.toString();
+    return url;
   }
 
   /**
@@ -182,7 +178,7 @@ export class HttpClient {
   #buildFetchConfig<J extends boolean>(
     config: FetchConfig,
     options: Required<CommonOptions<J>>,
-    signal: AbortSignal,
+    signal: AbortSignal | null,
   ): RequestInit {
     const {
       method,
@@ -263,7 +259,9 @@ export class HttpClient {
       method,
       headers,
       body: this.#getRequestBody(data),
-      signal: userSignal ?? this.#globalFetchConfig.signal ?? signal,
+      // 下面的signal不需要全局signal（即this.#globalFetchConfig.signal），因为signal是一次性的;
+      // 全局signal（即this.#globalFetchConfig.signal）也只能初始化时生成一次，一个signal不可能被多个请求共享；
+      signal: userSignal ?? signal,
     };
   }
 

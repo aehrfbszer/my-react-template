@@ -26,6 +26,7 @@ const data = () => {
     {
       url: getPath("/protected/data"),
       method: "GET",
+      signal: AbortSignal.timeout(100), // 请求超时示例
     },
     {
       responseIsJson: false,
@@ -47,17 +48,6 @@ const posts = () => {
   return someFetch(
     {
       url: getPath("/protected/posts"),
-      method: "GET",
-    },
-    {
-      responseIsJson: false,
-    },
-  ).then(getText);
-};
-const profile = () => {
-  return someFetch(
-    {
-      url: getPath("/protected/profile"),
       method: "GET",
     },
     {
@@ -106,7 +96,7 @@ const NetworkTest = () => {
             .catch((err) => console.error("Data error:", err))
         }
       >
-        Get Data
+        100ms超时
       </Button>
       <Button
         onClick={() =>
@@ -126,21 +116,11 @@ const NetworkTest = () => {
       >
         Get Posts
       </Button>
-      <Button
-        onClick={() =>
-          profile()
-            .then((res) => console.log("Profile response:", res))
-            .catch((err) => console.error("Profile error:", err))
-        }
-      >
-        Get Profile
-      </Button>
+
       <Button
         onClick={() => {
-          data().then(console.log).catch(console.error);
           user().then(console.log).catch(console.error);
           posts().then(console.log).catch(console.error);
-          profile().then(console.log).catch(console.error);
         }}
       >
         批量请求
