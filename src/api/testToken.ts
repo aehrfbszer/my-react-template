@@ -2,6 +2,7 @@ import { message } from "antd";
 import { bearerTokenHandler } from "../utils/auth-handlers";
 import { HttpClient } from "../utils/http-client";
 import { refreshTokenHandler } from "../utils/unauthorized-handler";
+import type { AfterHandle } from "../utils/types";
 
 /**
  * Token存储的key
@@ -82,6 +83,9 @@ const client = new HttpClient({
 export const someFetch = client.fetch.bind(client);
 export const setMessageFunction = client.setMessageFunction.bind(client);
 export const setLoadingFunction = client.setLoadingFunction.bind(client);
+
+export const afterHandle: AfterHandle = (handleRes) => (p1, p2) =>
+  someFetch(p1, p2).then((res) => handleRes(res));
 
 /**
  * 登录成功后调用此方法保存凭据

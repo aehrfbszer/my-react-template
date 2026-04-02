@@ -108,3 +108,12 @@ export interface HttpClientConfig {
   getDynamicHeaders?: DynamicHeadersHandler;
   handleError?: HandleErrorFunction;
 }
+
+export type MyFetch = <T, J extends boolean = false>(
+  config: FetchConfig,
+  options?: Partial<CommonOptions<J>>,
+) => Promise<J extends true ? T : Response>;
+
+export type AfterHandle = (
+  handleRes: (res: any) => Promise<any>,
+) => <R>(config: FetchConfig, options?: Partial<CommonOptions<boolean>>) => Promise<R>;

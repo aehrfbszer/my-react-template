@@ -1,11 +1,9 @@
 import { Button } from "antd";
-import { saveCredentials, someFetch } from "../api/testToken";
+import { afterHandle, saveCredentials, someFetch } from "../api/testToken";
 
 const prefix = "/api/v1";
 
 const getPath = (endpoint: string) => `${prefix}${endpoint}`;
-
-const getText = (res: Response) => res.text();
 
 const login = (data: { user_id: string }) => {
   return someFetch<{ token: string }>(
@@ -21,8 +19,10 @@ const login = (data: { user_id: string }) => {
   );
 };
 
+const fetchWithAfterHandle = afterHandle((res: Response) => res.text());
+
 const data = () => {
-  return someFetch(
+  return fetchWithAfterHandle<string>(
     {
       url: getPath("/protected/data"),
       method: "GET",
@@ -31,10 +31,10 @@ const data = () => {
     {
       responseIsJson: false,
     },
-  ).then(getText);
+  );
 };
 const user = () => {
-  return someFetch(
+  return fetchWithAfterHandle(
     {
       url: getPath("/protected/user"),
       method: "GET",
@@ -42,10 +42,10 @@ const user = () => {
     {
       responseIsJson: false,
     },
-  ).then(getText);
+  );
 };
 const posts = () => {
-  return someFetch(
+  return fetchWithAfterHandle(
     {
       url: getPath("/protected/posts"),
       method: "GET",
@@ -53,11 +53,11 @@ const posts = () => {
     {
       responseIsJson: false,
     },
-  ).then(getText);
+  );
 };
 
 const alwaysExpired = () => {
-  return someFetch(
+  return fetchWithAfterHandle(
     {
       url: getPath("/protected/profile"),
       method: "GET",
@@ -69,7 +69,7 @@ const alwaysExpired = () => {
     {
       responseIsJson: false,
     },
-  ).then(getText);
+  );
 };
 
 const NetworkTest = () => {
