@@ -1,5 +1,6 @@
-import { Button } from "antd";
-import { afterHandle, saveCredentials, someFetch } from "../api/testToken";
+import { Button, Spin } from "antd";
+import { afterHandle, saveCredentials, setLoadingFunction, someFetch } from "../api/testToken";
+import { useEffect, useState } from "react";
 
 const prefix = "/api/v1";
 
@@ -73,8 +74,18 @@ const alwaysExpired = () => {
 };
 
 const NetworkTest = () => {
+  const [loading, setLoading] = useState(false);
+
+  useEffect(() => {
+    setLoadingFunction({
+      start: () => setLoading(true),
+      finish: () => setLoading(false),
+    });
+  }, []);
+
   return (
     <div>
+      <Spin spinning={loading} />
       <h1>Network Test</h1>
       <p>This is a placeholder for network-related tests.</p>
       <Button

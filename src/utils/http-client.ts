@@ -95,16 +95,25 @@ export class HttpClient {
   ): Promise<J extends true ? T : Response> {
     const finalOptions = this.#getDefaultOptions(options);
 
-    const response = await this.#doFetch(config, finalOptions).catch((err) => {
-      if (finalOptions.errorMessageShow) {
-        const errorMessage = err instanceof Error ? err.message : String(err);
-        this.#messageFunction?.error?.(`请求发生错误：${errorMessage}`);
+    try {
+      if (finalOptions.loading) {
+        this.#loadingManager.start();
       }
-      throw err;
-    });
-    const data = await this.#handleResponse<T, J>(response, config, finalOptions);
+      const response = await this.#doFetch(config, finalOptions).catch((err) => {
+        if (finalOptions.errorMessageShow) {
+          const errorMessage = err instanceof Error ? err.message : String(err);
+          this.#messageFunction?.error?.(`请求发生错误：${errorMessage}`);
+        }
+        throw err;
+      });
+      const data = await this.#handleResponse<T, J>(response, config, finalOptions);
 
-    return data;
+      return data;
+    } finally {
+      if (finalOptions.loading) {
+        this.#loadingManager.finish();
+      }
+    }
   }
 
   /**
@@ -131,29 +140,19 @@ export class HttpClient {
     config: FetchConfig,
     options: Required<CommonOptions<T>>,
   ): Promise<Response> {
-    try {
-      if (options.loading) {
-        this.#loadingManager.start();
-      }
+    const { promise, resolve, reject } = Promise.withResolvers<Response>();
 
-      const { promise, resolve, reject } = Promise.withResolvers<Response>();
-
-      let globalTimeoutSignal: AbortSignal | null = null;
-      if (this.#timeout > 0) {
-        globalTimeoutSignal = AbortSignal.timeout(this.#timeout);
-      }
-
-      globalThis
-        .fetch(this.#buildUrl(config), this.#buildFetchConfig(config, options, globalTimeoutSignal))
-        .then(resolve)
-        .catch(reject);
-
-      return await promise;
-    } finally {
-      if (options.loading) {
-        this.#loadingManager.finish();
-      }
+    let globalTimeoutSignal: AbortSignal | null = null;
+    if (this.#timeout > 0) {
+      globalTimeoutSignal = AbortSignal.timeout(this.#timeout);
     }
+
+    globalThis
+      .fetch(this.#buildUrl(config), this.#buildFetchConfig(config, options, globalTimeoutSignal))
+      .then(resolve)
+      .catch(reject);
+
+    return await promise;
   }
 
   /**
