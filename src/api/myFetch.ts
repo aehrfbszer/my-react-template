@@ -1,6 +1,6 @@
 import { message } from "antd";
 import { bearerTokenHandler } from "../utils/auth-handlers";
-import { HttpClient } from "../utils/http-client";
+import { HttpClientFactory } from "../utils/http-client-factory";
 import { refreshTokenHandler } from "../utils/unauthorized-handler";
 
 /**
@@ -44,10 +44,7 @@ const handler = refreshTokenHandler({
 /**
  * 创建HTTP客户端实例
  */
-const client = new HttpClient({
-  baseUrl: import.meta.env.VITE_BASE_URL as string,
-  timeout: 60_000,
-
+const client = HttpClientFactory.createClient("myFetch", {
   // 组合使用Bearer Token和API Key认证
   getDynamicHeaders: bearerTokenHandler(getToken),
 
@@ -60,14 +57,8 @@ const client = new HttpClient({
       });
     } else {
       message.error(`请求失败：${rawRes.status} ${rawRes.statusText}`);
-      resolve(rawRes.json());
+      resolve(Promise.reject(rawRes));
     }
-  },
-
-  // 显示加载和错误消息
-  messageFunction: {
-    success: message.success,
-    error: message.error,
   },
 });
 

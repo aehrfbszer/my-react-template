@@ -1,13 +1,12 @@
 import { Button } from "antd";
 import { useEffect } from "react";
 import countStore from "../store/countStore";
-import { SimpleStore } from "../store/simpleStore";
+import { useSimpleStore } from "../utils/use-simple-store";
 
-const useStore = SimpleStore.useStore;
 const pageBId = Symbol("pageB");
 
 function PageB() {
-  const [getVal, setVal] = useStore(countStore, pageBId);
+  const [getVal, setVal] = useSimpleStore(countStore, pageBId);
 
   useEffect(() => {
     setVal((v) => v + 3);

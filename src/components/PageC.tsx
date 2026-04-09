@@ -1,13 +1,11 @@
 import { Button } from "antd";
 import cStore from "../store/cStore";
-import { SimpleStore } from "../store/simpleStore";
-
-const useStore = SimpleStore.useStore;
+import { useSimpleStore } from "../utils/use-simple-store";
 
 const PageCId = Symbol("PageCId");
 
 function PageC() {
-  const [getVal1, setVal1] = useStore(cStore, PageCId);
+  const [getVal1, setVal1] = useSimpleStore(cStore, PageCId);
 
   console.log("页面C渲染");
 

@@ -11,15 +11,16 @@
     "fmt": "oxfmt",
     "fmt:check": "oxfmt --check",
     "preview": "vite preview --host",
-    "prepare": "husky"
+    "prepare": "bun husky"
   },
   "dependencies": {
     "antd": "^6.3.5",
-    "react": "^19.2.4",
-    "react-dom": "^19.2.4",
+    "react": "^19.2.5",
+    "react-dom": "^19.2.5",
     "react-router": "^7.14.0"
   },
   "devDependencies": {
+    "@types/bun": "^1.3.11",
     "@types/node": "^25.5.2",
     "@types/react": "^19.2.14",
     "@types/react-dom": "^19.2.3",
@@ -28,9 +29,9 @@
     "husky": "^9.1.7",
     "lint-staged": "^16.4.0",
     "mitata": "^1.0.34",
-    "oxfmt": "^0.41.0",
+    "oxfmt": "^0.44.0",
     "oxlint": "^1.59.0",
     "typescript": "6.0.2",
-    "vite": "^8.0.5"
+    "vite": "^8.0.7"
   }
 }

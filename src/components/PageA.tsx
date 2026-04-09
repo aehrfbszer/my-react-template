@@ -1,15 +1,14 @@
 import { Button } from "antd";
-import { useEffect, useId } from "react";
+import { useEffect } from "react";
 import countStore from "../store/countStore";
 import cStore from "../store/cStore";
-import { SimpleStore } from "../store/simpleStore";
+import { useSimpleStore } from "../utils/use-simple-store";
 
-const useStore = SimpleStore.useStore;
 const pageAId = Symbol("pageA");
 
 function PageA() {
-  const [getVal, setVal] = useStore(countStore, pageAId);
-  const [getVal1, setVal1] = useStore(cStore, useId());
+  const [getVal, setVal] = useSimpleStore(countStore, pageAId);
+  const [getVal1, setVal1] = useSimpleStore(cStore);
 
   console.log("页面A渲染");
 

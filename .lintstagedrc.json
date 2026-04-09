@@ -1,4 +1,4 @@
 {
-  "*.{js,jsx,ts,tsx,mjs,cjs}": "pnpm run lint",
+  "*.{js,jsx,ts,tsx,mjs,cjs}": "bun run lint",
   "*": "oxfmt --no-error-on-unmatched-pattern"
 }
