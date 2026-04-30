@@ -36,17 +36,19 @@ export interface CommonOptions<J extends boolean> {
   errorMessageShow: boolean;
 
   /** 清除某些全局headers
-   * 例如：全局静态/动态请求头设置了Authorization，如果该接口不需要Authorization，可以在这里配置 `["Authorization"]`
-   * 默认【null】
+   * 例如：全局静态/动态请求头设置了Authorization，如果该接口不需要Authorization，可以在这里配置 `["Authorization"]`。
+   * 默认空
+   *
    * http规范对于请求头键值对中的键是不区分大小写的，所以这里的大小写功能应该都能正确处理，这里是js原生Headers对象的能力
    * 如需想要覆盖全局静态/动态请求头或者新加额外请求头，直接加在原生fetch的第一个参数里面的headers配置项即可，用户的headers配置项会覆盖全局静态/动态/默认请求头
    */
-  clearHeaders: string[] | null;
+  clearHeaders?: string[];
 
   /** 清除所有全局headers
    * 默认【false】
-   * 例如：全局静态/动态请求头设置了Authorization，如果该接口不需要Authorization，可以开启此选项
-   * 如需想要覆盖全局静态/动态请求头或者新加额外请求头，直接加在原生fetch的第一个参数里面的headers配置项即可，用户的headers配置项会覆盖全局静态/动态/默认请求头
+   * 例如：全局静态/动态请求头设置了Authorization，如果该接口不需要Authorization，可以开启此选项。
+   *
+   * tips：如需想要覆盖全局静态/动态请求头或者新加额外请求头，直接加在原生fetch的第一个参数里面的headers配置项即可，用户的headers配置项会覆盖全局静态/动态/默认请求头
    */
   clearAllHeaders?: boolean;
 
@@ -59,8 +61,11 @@ export interface CommonOptions<J extends boolean> {
 
   /**
    * 响应是否解析为JSON，默认【true】
-   * 如果为false，则fetch方法的返回值是原始的Response对象，由调用方决定如何处理响应体
-   * 如果为true，则fetch方法会自动调用response.json()并返回解析后的数据
+   *
+   * 如果为false，则fetch方法的返回值是原始的Response对象，由调用方决定如何处理响应体；
+   *
+   * 如果为true，则fetch方法会自动调用response.json()并返回解析后的数据；
+   *
    * 注意：如果接口响应的Content-Type不是application/json，或者响应体不是有效的JSON字符串，且responseIsJson为true，则会导致解析失败并抛出错误
    */
   responseIsJson: J;

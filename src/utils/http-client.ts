@@ -127,7 +127,7 @@ export class HttpClient {
       errorMessageShow: true,
       withoutGlobalDynamicHeaders: false,
       responseIsJson: true as T,
-      clearHeaders: null,
+      clearHeaders: [],
       clearAllHeaders: false,
       ...options,
     };
@@ -205,7 +205,7 @@ export class HttpClient {
     }
     // ++++++++++++++++++++++++++++++++++++++++++++++++++用户自定义的全局逻辑结束
 
-    if (options.clearHeaders) {
+    if (options.clearHeaders?.length) {
       for (const key of options.clearHeaders) {
         headers.delete(key);
       }
