@@ -77,7 +77,7 @@ export const setMessageFunction = client.setMessageFunction.bind(client);
 export const setLoadingFunction = client.setLoadingFunction.bind(client);
 
 export const afterHandle: AfterHandle = (handleRes) => (p1, p2) =>
-  someFetch(p1, p2).then((res) => handleRes(res));
+  someFetch(p1, p2).then((res) => handleRes(res) as Promise<any>);
 
 /**
  * 登录成功后调用此方法保存凭据

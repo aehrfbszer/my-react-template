@@ -23,7 +23,7 @@ const login = (data: { user_id: string }) => {
 const fetchWithAfterHandle = afterHandle((res: Response) => res.text());
 
 const data = () => {
-  return fetchWithAfterHandle<string>(
+  return fetchWithAfterHandle(
     {
       url: getPath("/protected/data"),
       method: "GET",

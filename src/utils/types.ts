@@ -114,6 +114,9 @@ export type MyFetch = <T, J extends boolean = false>(
   options?: Partial<CommonOptions<J>>,
 ) => Promise<J extends true ? T : Response>;
 
-export type AfterHandle = (
-  handleRes: (res: any) => Promise<any>,
-) => <R>(config: FetchConfig, options?: Partial<CommonOptions<boolean>>) => Promise<R>;
+export type AfterHandle = <U>(
+  handleRes: (res: any) => Promise<U>,
+) => <R = U>(
+  config: FetchConfig,
+  options?: Partial<CommonOptions<boolean>>,
+) => Promise<R extends U ? U : R>;
