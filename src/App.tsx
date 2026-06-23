@@ -2,7 +2,7 @@ import type { RouteObject } from "react-router";
 import { createBrowserRouter, Navigate, RouterProvider } from "react-router";
 import LearnNewThings from "./LearnNewThings/index.tsx";
 import "./styles/index.css";
-import { message } from "antd";
+import { toast } from "@heroui/react";
 import { lazy, useEffect } from "react";
 import { setMessageFunction } from "./api/myFetch.ts";
 
@@ -80,22 +80,19 @@ const router = createBrowserRouter(routes, {
 });
 
 const App = () => {
-  const [messageApi, contextHolder] = message.useMessage();
-
   useEffect(() => {
     setMessageFunction({
       success: (msg: string) => {
-        messageApi.success(msg);
+        toast.success(msg);
       },
       error: (msg: string) => {
-        messageApi.error(msg);
+        toast.danger(msg);
       },
     });
-  }, [messageApi]);
+  }, []);
 
   return (
     <>
-      {contextHolder}
       <RouterProvider router={router} />
     </>
   );

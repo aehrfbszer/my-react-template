@@ -1,4 +1,4 @@
-import { Button } from "antd";
+import { Button } from "@heroui/react";
 import type React from "react";
 import { use, useId, useState, useTransition } from "react";
 import { useLocation } from "react-router";
@@ -34,9 +34,8 @@ const Bpp: React.FC = () => {
   return (
     <div className="bpp">
       <Button
-        shape="round"
-        type="primary"
-        onClick={() => {
+        variant="primary"
+        onPress={() => {
           console.log("点击了按钮");
           func();
         }}
@@ -46,9 +45,8 @@ const Bpp: React.FC = () => {
       <h1>hello {location.pathname}</h1>
       <h2>{isPending ? "加载中" : "已完成"}</h2>
       <Button
-        shape="round"
-        type="primary"
-        onClick={() => {
+        variant="primary"
+        onPress={() => {
           console.log("ggggg", SimpleStore.lookAllStore());
         }}
       >
@@ -76,9 +74,7 @@ const Bpp: React.FC = () => {
         <PageB />
       </div>
       <div>
-        <Button shape="round" onClick={() => setShow(!show)}>
-          切换C
-        </Button>
+        <Button onPress={() => setShow(!show)}>切换C</Button>
       </div>
       {show && (
         <div>

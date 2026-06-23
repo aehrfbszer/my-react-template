@@ -1,4 +1,4 @@
-import { Button } from "antd";
+import { Button } from "@heroui/react";
 import { useEffect } from "react";
 import countStore from "../store/countStore";
 import { useSimpleStore } from "../utils/use-simple-store";
@@ -19,7 +19,7 @@ function PageB() {
       <h2>我的store{getVal()} BBBBBBBBB</h2>
       <div>
         <Button
-          onClick={() => {
+          onPress={() => {
             setVal((v) => v + 1);
           }}
         >

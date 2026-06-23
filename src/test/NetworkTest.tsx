@@ -1,7 +1,6 @@
-import { Button, Spin } from "antd";
 import { afterHandle, saveCredentials, setLoadingFunction, someFetch } from "../api/testToken";
 import { useEffect, useState } from "react";
-
+import { Spinner, Button } from "@heroui/react";
 const prefix = "/api/v1";
 
 const getPath = (endpoint: string) => `${prefix}${endpoint}`;
@@ -84,68 +83,73 @@ const NetworkTest = () => {
   }, []);
 
   return (
-    <div>
-      <Spin spinning={loading} />
-      <h1>Network Test</h1>
-      <p>This is a placeholder for network-related tests.</p>
-      <Button
-        onClick={() =>
-          login({ user_id: "123" })
-            .then((res) => {
-              saveCredentials(res.token);
-              console.log("Login successful, token saved:", res.token);
-            })
-            .catch((err) => console.error("Login error:", err))
-        }
-      >
-        Login
-      </Button>
-      <Button
-        onClick={() =>
-          data()
-            .then((res) => console.log("Data response:", res))
-            .catch((err) => console.error("Data error:", err))
-        }
-      >
-        100ms超时
-      </Button>
-      <Button
-        onClick={() =>
-          user()
-            .then((res) => console.log("User response:", res))
-            .catch((err) => console.error("User error:", err))
-        }
-      >
-        Get User
-      </Button>
-      <Button
-        onClick={() =>
-          posts()
-            .then((res) => console.log("Posts response:", res))
-            .catch((err) => console.error("Posts error:", err))
-        }
-      >
-        Get Posts
-      </Button>
+    <div className="flex items-center gap-4">
+      {loading ? (
+        <Spinner size="xl" />
+      ) : (
+        <>
+          <h1>Network Test</h1>
+          <p>This is a placeholder for network-related tests.</p>
+          <Button
+            onPress={() =>
+              login({ user_id: "123" })
+                .then((res) => {
+                  saveCredentials(res.token);
+                  console.log("Login successful, token saved:", res.token);
+                })
+                .catch((err) => console.error("Login error:", err))
+            }
+          >
+            Login
+          </Button>
+          <Button
+            onPress={() =>
+              data()
+                .then((res) => console.log("Data response:", res))
+                .catch((err) => console.error("Data error:", err))
+            }
+          >
+            100ms超时
+          </Button>
+          <Button
+            onPress={() =>
+              user()
+                .then((res) => console.log("User response:", res))
+                .catch((err) => console.error("User error:", err))
+            }
+          >
+            Get User
+          </Button>
+          <Button
+            onPress={() =>
+              posts()
+                .then((res) => console.log("Posts response:", res))
+                .catch((err) => console.error("Posts error:", err))
+            }
+          >
+            Get Posts
+          </Button>
 
-      <Button
-        onClick={() => {
-          user().then(console.log).catch(console.error);
-          posts().then(console.log).catch(console.error);
-        }}
-      >
-        批量请求
-      </Button>
+          <Button
+            onPress={() => {
+              user().then(console.log).catch(console.error);
+              posts().then(console.log).catch(console.error);
+            }}
+          >
+            批量请求
+          </Button>
 
-      <Button
-        onClick={() =>
-          alwaysExpired()
-            .then((res) => console.log("Always Expired response:", res))
-            .catch((err) => console.error("Always Expired error:", err))
-        }
-      >
-        请求一个永远过期的token
-      </Button>
+          <Button
+            onPress={() =>
+              alwaysExpired()
+                .then((res) => console.log("Always Expired response:", res))
+                .catch((err) => console.error("Always Expired error:", err))
+            }
+          >
+            请求一个永远过期的token
+          </Button>
+        </>
+      )}
     </div>
   );
 };

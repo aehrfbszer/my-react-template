@@ -1,4 +1,4 @@
-import { message } from "antd";
+import { toast } from "@heroui/react";
 import { bearerTokenHandler } from "../utils/auth-handlers";
 import { HttpClientFactory } from "../utils/http-client-factory";
 import { refreshTokenHandler } from "../utils/unauthorized-handler";
@@ -35,7 +35,7 @@ const handler = refreshTokenHandler({
     handleResponse: async (data) => {
       const { token } = data as { token: string };
       localStorage.setItem(TOKEN_KEY, token);
-      // message.success("刷新登录成功");
+      // toast.success("刷新登录成功");
     },
   },
   maxRetries: 3,
@@ -56,7 +56,7 @@ const client = HttpClientFactory.createClient("myFetch", {
         resolve(Promise.reject(e));
       });
     } else {
-      message.error(`请求失败：${rawRes.status} ${rawRes.statusText}`);
+      toast.danger(`请求失败：${rawRes.status} ${rawRes.statusText}`);
       resolve(Promise.reject(rawRes));
     }
   },

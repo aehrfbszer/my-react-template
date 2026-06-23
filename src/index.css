@@ -1,3 +1,6 @@
+@import "tailwindcss";
+@import "@heroui/styles";
+
 @layer {
   * {
     /*删除默认边距*/

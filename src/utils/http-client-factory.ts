@@ -1,4 +1,4 @@
-import { message } from "antd";
+import { toast } from "@heroui/react";
 import { HttpClient } from "./http-client";
 import type { HttpClientConfig } from "./types";
 
@@ -8,11 +8,11 @@ import type { HttpClientConfig } from "./types";
 const defaultConfig: Partial<HttpClientConfig> = {
   timeout: 60_000,
   messageFunction: {
-    success: message.success,
-    error: message.error,
+    success: toast.success,
+    error: toast.danger,
   },
   handleError: (rawRes, _rawParams, resolve) => {
-    message.error(`请求失败，状态码：【${rawRes.status}】【${rawRes.statusText}】`);
+    toast.danger(`请求失败，状态码：【${rawRes.status}】【${rawRes.statusText}】`);
     resolve(Promise.reject(rawRes));
   },
 };

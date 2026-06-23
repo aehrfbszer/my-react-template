@@ -1,4 +1,4 @@
-import { message } from "antd";
+import { toast } from "@heroui/react";
 import { bearerTokenHandler } from "../utils/auth-handlers";
 import { HttpClientFactory } from "../utils/http-client-factory";
 import { refreshTokenHandler } from "../utils/unauthorized-handler";
@@ -21,7 +21,6 @@ const handler = refreshTokenHandler({
     fetchConfig: {
       url: `${import.meta.env.VITE_BASE_URL}/api/v1/refresh`,
       method: "POST",
-
       // 注意：这里不能带body，因为这里是初始化时一次性的，除非刷新页面，否则拿到的token永远是旧的，导致死循环
       // body: JSON.stringify({ token: getToken() }),
       // headers: {
@@ -32,7 +31,7 @@ const handler = refreshTokenHandler({
     handleResponse: async (data) => {
       const { token } = data as { token: string };
       localStorage.setItem(TOKEN_KEY, token);
-      // message.success("刷新登录成功");
+      // toast.success("刷新登录成功");
     },
   },
   maxRetries: 3,
@@ -56,13 +55,15 @@ const client = HttpClientFactory.createClient("testToken", {
       const [config, options, innerFetch] = rawParams;
 
       handler(config, () => resolve(innerFetch(config, options)), resolve).catch((e) => {
-        message.error(
-          `请求失败，未能刷新登录状态，请重新登录：${e instanceof Error ? `${e.message}` : String(e)}`,
+        toast.danger(
+          `请求失败，未能刷新登录状态，请重新登录：${
+            e instanceof Error ? `${e.message}` : String(e)
+          }`,
         );
         resolve(Promise.reject(e));
       });
     } else {
-      message.error(`请求失败：${rawRes.status} ${rawRes.statusText}`);
+      toast.danger(`请求失败：${rawRes.status} ${rawRes.statusText}`);
 
       resolve(Promise.reject(rawRes));
     }

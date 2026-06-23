@@ -1,4 +1,4 @@
-import { Button } from "antd";
+import { Button } from "@heroui/react";
 import cStore from "../store/cStore";
 import { useSimpleStore } from "../utils/use-simple-store";
 
@@ -14,7 +14,7 @@ function PageC() {
       <h2>我的store{getVal1().dgdfg} AAAAAAAA</h2>
       <div>
         <Button
-          onClick={() => {
+          onPress={() => {
             setVal1((val) => ({
               ...val,
               dgdfg: val.dgdfg + 6,

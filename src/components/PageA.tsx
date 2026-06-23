@@ -1,4 +1,4 @@
-import { Button } from "antd";
+import { Button } from "@heroui/react";
 import { useEffect } from "react";
 import countStore from "../store/countStore";
 import cStore from "../store/cStore";
@@ -21,7 +21,7 @@ function PageA() {
       <h2>我的store{getVal()} AAAAAAAA</h2>
       <div>
         <Button
-          onClick={() => {
+          onPress={() => {
             setVal((v) => v + 1);
           }}
         >
@@ -31,7 +31,7 @@ function PageA() {
       <h2>我的store{getVal1().dgdfg} AAAAAAAA</h2>
       <div>
         <Button
-          onClick={() => {
+          onPress={() => {
             setVal1((val) => ({
               ...val,
               dgdfg: val.dgdfg + 1,

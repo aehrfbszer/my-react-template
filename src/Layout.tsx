@@ -1,16 +1,15 @@
 import { Link, Outlet, useLocation, type RouteObject } from "react-router";
-import { createContext } from "react";
-import { Menu } from "antd";
+import React, { createContext } from "react";
 import "./Layout.css";
-import type { MenuProps } from "antd";
-
-type MenuItem = Required<MenuProps>["items"][number];
 
 // Context最好是单文件导出，不要和组件一起导出
 const SomeContext = createContext<{ aa?: number }>({});
 
 interface LayoutProps {
-  menus?: MenuItem[];
+  menus?: {
+    label: React.JSX.Element;
+    key: string;
+  }[];
 }
 
 const Layout = ({ menus }: LayoutProps) => {
@@ -19,7 +18,16 @@ const Layout = ({ menus }: LayoutProps) => {
 
   return (
     <div className="layout-container">
-      {menus ? <Menu selectedKeys={[location.pathname]} mode="horizontal" items={menus} /> : null}
+      {menus ? (
+        // <Menu selectedKeys={[location.pathname]} mode="horizontal" items={menus} />
+        <nav>
+          <ul>
+            {menus.map((me) => (
+              <li key={me.key}>{me.label}</li>
+            ))}
+          </ul>
+        </nav>
+      ) : null}
       <SomeContext value={{ aa: 1 }}>
         <Outlet />
       </SomeContext>
