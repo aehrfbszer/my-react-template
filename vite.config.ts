@@ -8,4 +8,7 @@ export default defineConfig({
   build: {
     target: "esnext",
   },
+  experimental: {
+    bundledDev: true,
+  },
 });
