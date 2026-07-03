@@ -2,9 +2,10 @@ import type { RouteObject } from "react-router";
 import { createBrowserRouter, Navigate, RouterProvider } from "react-router";
 import LearnNewThings from "./LearnNewThings/index.tsx";
 import "./styles/index.css";
-import { toast } from "@heroui/react";
+import { Toast, toast } from "@heroui/react";
 import { lazy, useEffect } from "react";
-import { setMessageFunction } from "./api/myFetch.ts";
+import { setMessageFunction as setMSg1 } from "./api/myFetch.ts";
+import { setMessageFunction as setMSg2 } from "./api/testToken.ts";
 
 const Bpp = lazy(() => import("./Bpp.tsx"));
 const Base64 = lazy(() => import("./Base64.tsx"));
@@ -12,7 +13,7 @@ const Login = lazy(() => import("./Login.tsx"));
 const LayoutWithAuth = lazy(() => import("./LayoutWithAuth.tsx"));
 const NetworkTest = lazy(() => import("./test/NetworkTest.tsx"));
 
-export const routes: RouteObject[] = [
+const routes: RouteObject[] = [
   {
     index: true,
     element: <Navigate to={`/network-test`} replace />,
@@ -81,7 +82,7 @@ const router = createBrowserRouter(routes, {
 
 const App = () => {
   useEffect(() => {
-    setMessageFunction({
+    setMSg1({
       success: (msg: string) => {
         toast.success(msg);
       },
@@ -89,10 +90,20 @@ const App = () => {
         toast.danger(msg);
       },
     });
+    setMSg2({
+      success: (msg: string) => {
+        toast.success(msg);
+      },
+      error: (msg: string) => {
+        console.error("testToken error:", msg);
+        toast.danger(msg);
+      },
+    });
   }, []);
 
   return (
     <>
+      <Toast.Provider placement="top" />
       <RouterProvider router={router} />
     </>
   );

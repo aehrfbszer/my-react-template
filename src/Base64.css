@@ -1,5 +1,6 @@
 .wrapper {
   padding: 1em;
+  background-color: aliceblue;
 
   .flex-line {
     display: flex;

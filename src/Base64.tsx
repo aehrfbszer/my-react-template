@@ -8,7 +8,7 @@ import {
   RadioGroup,
   TextField,
 } from "@heroui/react";
-import { useEffect, useState, type SubmitEvent } from "react";
+import { useActionState, useEffect, useState } from "react";
 import { myFetch } from "./api/myFetch";
 import "./Base64.css";
 
@@ -45,41 +45,74 @@ import "./Base64.css";
 //   </Text>
 // );
 
+const obj = {
+  encode: {
+    inputField: "rawText",
+    label: "原始文本",
+  },
+  decode: {
+    inputField: "encodedText",
+    label: "base64编码后",
+  },
+};
+
+interface Base64FormData {
+  encodeOrDecode: "encode" | "decode";
+  encodedText?: string;
+  rawText?: string;
+  urlSafe: "true" | "false";
+  strict: "true" | "false";
+}
+type FormStateType = Omit<Base64FormData, "encodeOrDecode">;
+
 const Base64 = () => {
   const [lastInputText, setLastInputText] = useState<string>("");
+  const [result, setResult] = useState<string>("");
+
+  const defaultFormState: Base64FormData = {
+    urlSafe: "false",
+    strict: "true",
+    rawText: "",
+    encodedText: "",
+    encodeOrDecode: "encode",
+  };
+
+  const [encodeOrDecode, setEncodeOrDecode] = useState<"encode" | "decode">(
+    defaultFormState.encodeOrDecode,
+  );
+
   console.log(lastInputText);
 
-  const handleSubmit = (e: SubmitEvent<HTMLFormElement>) => {
-    e.preventDefault();
-    if (e.currentTarget) {
-      const formData = new FormData(e.currentTarget);
-      const data: Record<string, string> = {};
-      // Convert FormData to plain object
-      formData.forEach((value, key) => {
-        data[key] = value.toString();
+  const handleSubmit: (prevState: Base64FormData, formData: FormData) => Base64FormData = (
+    prevState,
+    formData,
+  ) => {
+    const data = Object.fromEntries(formData.entries()) as unknown as Base64FormData;
+    console.log("formData", data);
+
+    if (encodeOrDecode === "encode") {
+      const bytes = new TextEncoder().encode(data.rawText as string);
+      setResult(
+        bytes.toBase64({
+          alphabet: data.urlSafe === "true" ? "base64url" : "base64",
+          omitPadding: data.strict === "false",
+        }),
+      );
+    } else if (encodeOrDecode === "decode") {
+      const bytes = Uint8Array.fromBase64(data.encodedText as string, {
+        alphabet: data.urlSafe === "true" ? "base64url" : "base64",
+        lastChunkHandling: data.strict === "true" ? "strict" : "loose",
       });
-
-      console.log(formData, "formData", e.currentTarget, data);
-      return;
+      setResult(new TextDecoder().decode(bytes));
     }
-    // if (encodeOrDecode === "encode") {
-    //   const bytes = new TextEncoder().encode(rawText);
-    //   form.setFieldValue(
-    //     "encodedText",
-    //     bytes.toBase64({
-    //       alphabet: urlSafe ? "base64url" : "base64",
-    //       omitPadding: !strict,
-    //     }),
-    //   );
-    // } else if (encodeOrDecode === "decode") {
-    //   const bytes = Uint8Array.fromBase64(encodedText, {
-    //     alphabet: urlSafe ? "base64url" : "base64",
-    //     lastChunkHandling: strict ? "strict" : "loose",
-    //   });
 
-    //   form.setFieldValue("rawText", new TextDecoder().decode(bytes));
-    // }
+    return data;
   };
+
+  const [state, formAction] = useActionState<Base64FormData, FormData>(
+    handleSubmit,
+    defaultFormState,
+  );
   useEffect(() => {
     myFetch(
       {
@@ -107,15 +140,10 @@ const Base64 = () => {
   return (
     <div className="wrapper">
       <Form
-        //@ts-ignore
-        onSubmit={handleSubmit}
-        initialValues={{
-          encodeOrDecode: "encode",
-          urlSafe: false,
-          strict: true,
-        }}
+        action={formAction}
+        className="flex flex-col gap-4 p-8 bg-gray-100 rounded-lg shadow-md"
       >
-        <RadioGroup name="urlSafe">
+        <RadioGroup isRequired name="urlSafe" defaultValue={state.urlSafe}>
           <Label>base64编码方式</Label>
           <Radio value="false">
             <Radio.Content>
@@ -134,7 +162,7 @@ const Base64 = () => {
             </Radio.Content>
           </Radio>
         </RadioGroup>
-        <RadioGroup name="strict">
+        <RadioGroup isRequired name="strict" defaultValue={state.strict}>
           <Label>base64严谨格式</Label>
           <Radio value="true">
             <Radio.Content>
@@ -153,8 +181,12 @@ const Base64 = () => {
             </Radio.Content>
           </Radio>
         </RadioGroup>
-        <TextField isRequired name="rawText">
-          <Label>原始文本</Label>
+        <TextField
+          isRequired
+          name={obj[encodeOrDecode].inputField}
+          defaultValue={state[obj[encodeOrDecode].inputField as keyof FormStateType] as string}
+        >
+          <Label>{obj[encodeOrDecode].label}</Label>
           <Input
             onBlur={(e) => {
               setLastInputText(e.target.value);
@@ -162,19 +194,35 @@ const Base64 = () => {
           />
           <FieldError />
         </TextField>
-        <TextField isRequired name="encodedText">
-          <Label>base64编码后</Label>
-          <Input
-            onBlur={(e) => {
-              setLastInputText(e.target.value);
-            }}
-          />
-          <FieldError />
+        <TextField>
+          <Label>编/解码结果</Label>
+          <Input value={result} readOnly />
         </TextField>
 
-        <RadioGroup name="encodeOrDecode">
-          <Radio value="encode">编码</Radio>
-          <Radio value="decode">解码</Radio>
+        <RadioGroup
+          defaultValue={state.encodeOrDecode}
+          name="encodeOrDecode"
+          onChange={(val) => {
+            console.log("encodeOrDecode changed", val);
+            setEncodeOrDecode(val);
+          }}
+        >
+          <Radio value="encode">
+            <Radio.Content>
+              <Radio.Control>
+                <Radio.Indicator />
+              </Radio.Control>
+              编码
+            </Radio.Content>
+          </Radio>
+          <Radio value="decode">
+            <Radio.Content>
+              <Radio.Control>
+                <Radio.Indicator />
+              </Radio.Control>
+              解码
+            </Radio.Content>
+          </Radio>
         </RadioGroup>
 
         <Button variant="primary" type="submit">
