@@ -1,4 +1,4 @@
-import type { FetchConfig } from "./types";
+import type { FetchConfig } from "./core/types";
 
 /**
  * 刷新 Token 处理器的配置

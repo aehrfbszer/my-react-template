@@ -7,7 +7,7 @@ import PageA from "./components/PageA";
 import PageB from "./components/PageB";
 import PageC from "./components/PageC";
 import { SomeContext } from "./Layout";
-import { SimpleStore } from "./store/simpleStore";
+import { SimpleStore } from "./store/core/simpleStore";
 import "./Bpp.css";
 const Bpp: React.FC = () => {
   const location = useLocation();
@@ -17,18 +17,17 @@ const Bpp: React.FC = () => {
   const ddd = useId();
   const [show, setShow] = useState(true);
 
-  const func = async () => {
-    startTransition(async () => {
-      try {
-        await getHomeList({ fasd: "3" });
-      } catch (e) {
-        console.log(e, "eee");
-      } finally {
+  const func = () => {
+    getHomeList({ fasd: "3" })
+      .then((res) => {
+        console.log(res, "res");
+      })
+      .finally(() => {
         startTransition(() => {
-          setCount((pre) => pre + 1);
+          console.log("startTransition");
+          setCount((prev) => prev + 1);
         });
-      }
-    });
+      });
   };
 
   return (

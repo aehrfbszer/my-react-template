@@ -1,4 +1,4 @@
-import type { DynamicHeadersHandler, FetchConfig } from "./types";
+import type { DynamicHeadersHandler, FetchConfig } from "./core/types";
 
 /**
  * Bearer Token认证处理器

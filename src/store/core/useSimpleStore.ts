@@ -1,5 +1,5 @@
 import { useMemo } from "react";
-import { SimpleStore } from "../store/simpleStore";
+import { SimpleStore } from "./simpleStore";
 
 /**
  * 通用的 React hook，用于使用 SimpleStore

@@ -2,7 +2,7 @@ import { Button } from "@heroui/react";
 import { useEffect } from "react";
 import countStore from "../store/countStore";
 import cStore from "../store/cStore";
-import { useSimpleStore } from "../utils/use-simple-store";
+import { useSimpleStore } from "../store/core/useSimpleStore";
 
 const pageAId = Symbol("pageA");
 

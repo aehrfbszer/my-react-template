@@ -104,7 +104,7 @@ const App = () => {
   return (
     <>
       <Toast.Provider placement="top" />
-      <RouterProvider router={router} />
+      <RouterProvider router={router} useTransitions />
     </>
   );
 };

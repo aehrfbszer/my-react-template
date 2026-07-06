@@ -1,4 +1,4 @@
-import { createStore } from "./store-factory";
+import { createStore } from "./core/simpleStore";
 
 const countStore = createStore("count", 0);
 

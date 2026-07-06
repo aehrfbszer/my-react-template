@@ -1,5 +1,5 @@
-import { Link, Outlet, useLocation, type RouteObject } from "react-router";
-import React, { createContext } from "react";
+import { Outlet, useLocation } from "react-router";
+import { createContext, type ReactNode } from "react";
 import "./Layout.css";
 
 // Context最好是单文件导出，不要和组件一起导出
@@ -7,7 +7,7 @@ const SomeContext = createContext<{ aa?: number }>({});
 
 interface LayoutProps {
   menus?: {
-    label: React.JSX.Element;
+    label: ReactNode;
     key: string;
   }[];
 }
@@ -19,11 +19,12 @@ const Layout = ({ menus }: LayoutProps) => {
   return (
     <div className="layout-container">
       {menus ? (
-        // <Menu selectedKeys={[location.pathname]} mode="horizontal" items={menus} />
-        <nav>
-          <ul>
+        <nav className="p-4">
+          <ul className="flex items-center gap-4">
             {menus.map((me) => (
-              <li key={me.key}>{me.label}</li>
+              <li key={me.key} className={location.pathname === me.key ? "text-blue-500" : ""}>
+                {me.label}
+              </li>
             ))}
           </ul>
         </nav>
@@ -34,17 +35,6 @@ const Layout = ({ menus }: LayoutProps) => {
     </div>
   );
 };
-export type SubRoute = RouteObject & {
-  name: string;
-};
-export const getMenus = (prefix: string, subRoutes: SubRoute[]) =>
-  subRoutes.map((item) => {
-    const basename = `/${prefix}`;
-    const finalPath = item.path ? `${basename}/${item.path}` : basename;
-    return {
-      label: <Link to={finalPath}>{item.name}</Link>,
-      key: finalPath,
-    };
-  });
+
 export default Layout;
 export { SomeContext };

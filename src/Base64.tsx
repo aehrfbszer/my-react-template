@@ -7,6 +7,7 @@ import {
   Radio,
   RadioGroup,
   TextField,
+  toast,
 } from "@heroui/react";
 import { useActionState, useEffect, useState } from "react";
 import { myFetch } from "./api/myFetch";
@@ -65,17 +66,15 @@ interface Base64FormData {
 }
 type FormStateType = Omit<Base64FormData, "encodeOrDecode">;
 
+const defaultFormState: Base64FormData = {
+  urlSafe: "false",
+  strict: "true",
+  encodeOrDecode: "encode",
+};
+
 const Base64 = () => {
   const [lastInputText, setLastInputText] = useState<string>("");
   const [result, setResult] = useState<string>("");
-
-  const defaultFormState: Base64FormData = {
-    urlSafe: "false",
-    strict: "true",
-    rawText: "",
-    encodedText: "",
-    encodeOrDecode: "encode",
-  };
 
   const [encodeOrDecode, setEncodeOrDecode] = useState<"encode" | "decode">(
     defaultFormState.encodeOrDecode,
@@ -84,7 +83,7 @@ const Base64 = () => {
   console.log(lastInputText);
 
   const handleSubmit: (prevState: Base64FormData, formData: FormData) => Base64FormData = (
-    prevState,
+    _prevState,
     formData,
   ) => {
     const data = Object.fromEntries(formData.entries()) as unknown as Base64FormData;
@@ -99,11 +98,15 @@ const Base64 = () => {
         }),
       );
     } else if (encodeOrDecode === "decode") {
-      const bytes = Uint8Array.fromBase64(data.encodedText as string, {
-        alphabet: data.urlSafe === "true" ? "base64url" : "base64",
-        lastChunkHandling: data.strict === "true" ? "strict" : "loose",
-      });
-      setResult(new TextDecoder().decode(bytes));
+      try {
+        const bytes = Uint8Array.fromBase64(data.encodedText as string, {
+          alphabet: data.urlSafe === "true" ? "base64url" : "base64",
+          lastChunkHandling: data.strict === "true" ? "strict" : "loose",
+        });
+        setResult(new TextDecoder().decode(bytes));
+      } catch {
+        toast.danger("解码失败，请检查输入的base64编码是否正确；或是否符合所选的编码方式");
+      }
     }
 
     return data;
@@ -196,15 +199,25 @@ const Base64 = () => {
         </TextField>
         <TextField>
           <Label>编/解码结果</Label>
-          <Input value={result} readOnly />
+          <Input
+            value={result}
+            readOnly
+            onClick={async () => {
+              try {
+                await navigator.clipboard.writeText(result);
+                toast.info("文本已复制");
+              } catch {
+                toast.danger("复制失败");
+              }
+            }}
+          />
         </TextField>
 
         <RadioGroup
           defaultValue={state.encodeOrDecode}
           name="encodeOrDecode"
           onChange={(val) => {
-            console.log("encodeOrDecode changed", val);
-            setEncodeOrDecode(val);
+            setEncodeOrDecode(val as "encode" | "decode");
           }}
         >
           <Radio value="encode">

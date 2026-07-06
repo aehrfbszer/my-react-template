@@ -1,6 +1,6 @@
 import { Button } from "@heroui/react";
 import cStore from "../store/cStore";
-import { useSimpleStore } from "../utils/use-simple-store";
+import { useSimpleStore } from "../store/core/useSimpleStore";
 
 const PageCId = Symbol("PageCId");
 
