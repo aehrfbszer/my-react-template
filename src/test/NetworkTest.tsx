@@ -61,10 +61,6 @@ const alwaysExpired = () => {
     {
       url: getPath("/protected/profile"),
       method: "GET",
-      headers: {
-        authorization:
-          "Bearer eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJzdWIiOiIxMjMiLCJleHAiOjE3NzUwMzUxODN9.FjnjvfYdnKltzxEfcCxqftfqNXfG0__Mtou5dDfXoIg",
-      },
     },
     {
       responseIsJson: false,
@@ -83,7 +79,7 @@ const NetworkTest = () => {
   }, []);
 
   return (
-    <div className="flex items-center gap-4">
+    <div className="flex items-center gap-4 p-4 flex-col">
       {loading ? (
         <Spinner size="xl" />
       ) : (

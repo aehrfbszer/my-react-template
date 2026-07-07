@@ -26,6 +26,7 @@ const handler = refreshTokenHandler({
       // headers: {
       //   "Content-Type": "application/json",
       // },
+      credentials: "include", // 允许跨域请求携带cookie
     },
     responseIsJson: true,
     handleResponse: async (data) => {
@@ -49,6 +50,9 @@ const client = HttpClientFactory.createClient("testToken", {
   //     "X-TEST-HEADER": "test-value", // 全局静态请求头示例
   //   },
   // },
+  globalFetchConfig: {
+    credentials: "include", // 允许跨域请求携带cookie
+  },
 
   handleError: (rawRes, rawParams, resolve) => {
     if (rawRes.status === 401) {
