@@ -1,0 +1,30 @@
+# EXAMPLE USAGE:
+#
+#   Refer for explanation to following link:
+#   https://lefthook.dev/configuration/
+#
+# pre-push:
+#   jobs:
+#     - name: packages audit
+#       tags:
+#         - frontend
+#         - security
+#       run: yarn audit
+#
+#     - name: gems audit
+#       tags:
+#         - backend
+#         - security
+#       run: bundle audit
+#
+pre-commit:
+  parallel: true
+  jobs:
+    - name: lint
+      run: pnpm dlx oxlint {staged_files}
+      glob: "*.{js,ts,jsx,tsx}"
+
+    - name: fmt
+      glob: "*.{js,ts,jsx,tsx,json}"
+      run: pnpm dlx oxfmt --write {staged_files}
+      stage_fixed: true

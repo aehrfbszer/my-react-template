@@ -35,14 +35,14 @@ export class DelayIterator {
   }
 }
 
-setInterval(() => {
-  console.log("keep-alive");
-}, 500); // keep module as ESM
-using d = new DelayIterator(1000);
+using d = new DelayIterator(10);
 for await (const aa of d) {
   console.log("Delayed 1 second", aa);
 }
 
-for await (const _ of delay(2000)) {
+for await (const _ of delay(20)) {
   console.log("Delayed 2 seconds");
 }
+
+const array = await Array.fromAsync(d);
+console.log("Array from async iterator:", array);
