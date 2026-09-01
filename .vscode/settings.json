@@ -1,6 +1,5 @@
 {
   "oxc.enable": true,
-  "oxc.useExecPath": true,
   "oxc.fmt.configPath": ".oxfmtrc.json",
   "editor.defaultFormatter": "oxc.oxc-vscode",
   "editor.formatOnSave": true,

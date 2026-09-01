@@ -9,7 +9,7 @@ export interface FetchConfig extends RequestInit {
    * 3. config.url中的pathname/search/hash部分会被保留并参与最终URL的构建
    */
   url: string;
-  method: "GET" | "POST" | "PUT" | "DELETE" | "PATCH" | "HEAD" | "OPTIONS";
+  method: "GET" | "POST" | "PUT" | "DELETE" | "PATCH" | "HEAD" | "OPTIONS" | "QUERY" | string;
   /**
    * 当data为普通object时，里面值为undefined的属性会被自动删除（JSON.stringify干的）
    */

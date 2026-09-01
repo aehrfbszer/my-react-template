@@ -1,20 +1,21 @@
-import { afterHandle, saveCredentials, setLoadingFunction, someFetch } from "../api/testToken";
+import { afterHandle, setLoadingFunction, someFetch } from "../api/testToken";
 import { useEffect, useState } from "react";
 import { Spinner, Button } from "@heroui/react";
 const prefix = "/api/v1";
 
 const getPath = (endpoint: string) => `${prefix}${endpoint}`;
 
-const login = (data: { user_id: string }) => {
+const login = (data: { user_id: number; username: string }) => {
   return someFetch<{ token: string }>(
     {
-      url: getPath("/token"),
+      url: getPath("/login"),
       method: "POST",
       data,
     },
     {
       // clearHeaders: ["Authorization"],
       withoutGlobalDynamicHeaders: true,
+      responseIsJson: false,
     },
   );
 };
@@ -88,11 +89,11 @@ const NetworkTest = () => {
           <p>This is a placeholder for network-related tests.</p>
           <Button
             onPress={() =>
-              login({ user_id: "123" })
-                .then((res) => {
-                  saveCredentials(res.token);
-                  console.log("Login successful, token saved:", res.token);
-                })
+              login({ user_id: 123, username: "testuser" })
+                // .then((res) => {
+                //   saveCredentials(res.token);
+                //   console.log("Login successful, token saved:", res.token);
+                // })
                 .catch((err) => console.error("Login error:", err))
             }
           >
@@ -124,6 +125,23 @@ const NetworkTest = () => {
             }
           >
             Get Posts
+          </Button>
+          <Button
+            onPress={() =>
+              fetchWithAfterHandle(
+                {
+                  url: getPath("/protected/apples"),
+                  method: "QUERY",
+                },
+                {
+                  responseIsJson: false,
+                },
+              )
+                .then((res) => console.log("Apples response:", res))
+                .catch((err) => console.error("Apples error:", err))
+            }
+          >
+            Get 🍎
           </Button>
 
           <Button
